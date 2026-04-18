@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LBC Solicitadora — Dados para Contrato</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FAF8F4;--ink:#1C1917;--ink-soft:#57534E;--ink-faint:#A8A29E;
+  --gold:#B08D57;--gold-light:#F5EDD8;--gold-border:#DDD0B3;
+  --white:#FFFFFF;--border:#E7E5E4;--red:#C0392B;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--ink);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* HEADER */
+.header{background:var(--white);border-bottom:1px solid var(--border);padding:0}
+.header-inner{max-width:780px;margin:0 auto;padding:2rem 2rem 1.5rem}
+.header-logo{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.logo-mark{width:36px;height:36px;background:var(--ink);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo-mark span{color:var(--white);font-family:'Playfair Display',serif;font-size:16px;font-weight:700}
+.logo-name{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;letter-spacing:.02em}
+.logo-sub{font-size:11px;color:var(--ink-soft);letter-spacing:.08em;text-transform:uppercase;margin-top:-2px}
+.header-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600;letter-spacing:-.01em;margin-bottom:.4rem}
+.header-desc{font-size:14px;color:var(--ink-soft);line-height:1.6;max-width:560px}
+.header-ref{display:inline-flex;align-items:center;gap:.4rem;margin-top:.75rem;padding:.35rem .75rem;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:4px;font-size:12px;color:var(--gold);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* PROGRESS */
+.progress-bar{height:3px;background:var(--border)}
+.progress-fill{height:100%;background:var(--gold);transition:width .4s ease;width:0%}
+
+/* FORM */
+.form-wrap{max-width:780px;margin:0 auto;padding:2rem 2rem 6rem}
+
+/* SECTION */
+.section{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1.75rem;margin-bottom:1.25rem;box-shadow:var(--shadow)}
+.section-header{display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.5rem;padding-bottom:1.1rem;border-bottom:1px solid var(--border)}
+.section-num{width:28px;height:28px;background:var(--ink);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.section-num span{font-family:'Playfair Display',serif;color:var(--white);font-size:13px;font-weight:600}
+.section-title{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;letter-spacing:-.01em}
+.section-sub{font-size:12px;color:var(--ink-faint);margin-top:2px}
+
+/* FIELDS */
+.field-grid{display:grid;gap:1rem}
+.field-grid-2{grid-template-columns:1fr 1fr}
+.field-full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft)}
+.field label .req{color:var(--red);margin-left:2px}
+.field input,.field select,.field textarea{padding:10px 13px;border:1px solid var(--border);border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:14px;color:var(--ink);background:var(--white);transition:border .15s,box-shadow .15s;-webkit-appearance:none}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-light)}
+.field textarea{resize:vertical;line-height:1.5}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='%2357534E' d='M8 10L3 5h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.field-hint{font-size:11px;color:var(--ink-faint);margin-top:2px;font-style:italic}
+
+/* PERSON BLOCK */
+.person-block{border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:.75rem;background:var(--cream)}
+.person-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.person-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft)}
+.person-type{display:flex;gap:.35rem}
+.type-btn{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--white);font-size:11px;cursor:pointer;color:var(--ink-soft);font-family:'Source Sans 3',sans-serif;transition:all .15s;font-weight:500}
+.type-btn.active{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.remove-btn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:var(--white);color:var(--ink-faint);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all .15s}
+.remove-btn:hover{background:#FEE2E2;border-color:var(--red);color:var(--red)}
+.add-btn{width:100%;padding:.65rem;border:1px dashed var(--gold-border);border-radius:7px;background:transparent;color:var(--gold);font-size:13px;cursor:pointer;font-family:'Source Sans 3',sans-serif;font-weight:500;transition:all .15s;margin-top:.25rem}
+.add-btn:hover{background:var(--gold-light)}
+.casado-block{background:var(--gold-light);border:1px solid var(--gold-border);border-radius:7px;padding:1rem;margin-top:.75rem}
+.casado-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:.75rem}
+
+/* NOTA PRIVACIDADE */
+.privacy-note{background:var(--gold-light);border:1px solid var(--gold-border);border-radius:8px;padding:1rem 1.25rem;font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:1.25rem}
+.privacy-note strong{color:var(--gold);display:block;margin-bottom:.3rem;font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+
+/* FOOTER FIXO */
+.sticky{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,.06);z-index:100}
+.sticky-info{font-size:12px;color:var(--ink-faint)}
+.sticky-info strong{color:var(--ink-soft);display:block;font-size:13px}
+.btns{display:flex;gap:.65rem}
+.btn{padding:9px 18px;border-radius:6px;border:1px solid var(--border);background:var(--white);color:var(--ink);font-size:13px;font-weight:500;cursor:pointer;font-family:'Source Sans 3',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--cream);border-color:var(--ink-faint)}
+.btn-primary{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.btn-primary:hover{background:#3C3935}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:var(--white)}
+.btn-gold:hover{background:#9A7A48}
+
+/* TOAST */
+.toast{position:fixed;top:1.5rem;right:1.5rem;background:var(--ink);color:var(--white);padding:.75rem 1.25rem;border-radius:7px;font-size:13px;z-index:9999;opacity:0;transform:translateY(-8px);transition:all .3s;pointer-events:none;max-width:320px;box-shadow:var(--shadow-lg)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.ok{background:#2D7D4F}
+.toast.err{background:var(--red)}
+
+/* PRINT */
+@media print{
+  body{background:white;font-size:12px}
+  .header{box-shadow:none;border-bottom:2px solid var(--ink)}
+  .sticky,.progress-bar,.add-btn,.remove-btn,.person-type{display:none!important}
+  .section{box-shadow:none;break-inside:avoid;border:1px solid #ccc;margin-bottom:.75rem;padding:1rem}
+  .form-wrap{padding:1rem 0}
+  .field input,.field select,.field textarea{border:none;border-bottom:1px solid var(--border);border-radius:0;padding:4px 0;background:transparent}
+  .print-comprovativo{display:block!important}
+}
+.print-comprovativo{display:none;background:var(--gold-light);border:1px solid var(--gold-border);border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;color:var(--ink-soft)}
+
+/* RESPONSIVE */
+@media(max-width:600px){.field-grid-2{grid-template-columns:1fr}.sticky{padding:.75rem 1rem;flex-direction:column;gap:.5rem;align-items:stretch}.btns{justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-logo">
+      <div class="logo-mark"><span>LB</span></div>
+      <div><div class="logo-name">LBC Solicitadora</div><div class="logo-sub">Évora</div></div>
+    </div>
+    <div class="header-title">Dados para Contrato Promessa</div>
+    <div class="header-desc">Para preparar o seu contrato com rigor, pedimos que preencha os dados em baixo. A informação é confidencial e usada exclusivamente para este efeito.</div>
+    <div class="header-ref">
+      <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="7"/><path d="M8 7v5M8 5v1"/></svg>
+      Todos os campos com * são obrigatórios
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+</div>
+
+<div class="form-wrap">
+
+  <div class="print-comprovativo" id="print-comprovativo">
+    <strong>Comprovativo de submissão</strong>
+    Estes são os dados que submeteu à LBC Solicitadora em <span id="data-subm"></span>. Guarde este documento para referência.
+  </div>
+
+  <div class="privacy-note">
+    <strong>Nota de privacidade</strong>
+    Os dados recolhidos neste formulário destinam-se exclusivamente à elaboração do contrato promessa de compra e venda, no âmbito da prestação de serviços com a Prime Team, e serão tratados nos termos do RGPD (Regulamento Geral de Proteção de Dados).
+  </div>
+
+  <!-- ⓪ IDENTIFICAÇÃO DO PROCESSO REMAX -->
+  <div class="section" style="border-color:var(--gold);background:var(--gold-light)">
+    <div class="section-header" style="border-bottom-color:var(--gold-border)">
+      <div class="section-num" style="background:var(--gold)"><span>✦</span></div>
+      <div><div class="section-title">Identificação do Processo</div><div class="section-sub">Dados do processo REMAX e do consultor responsável</div></div>
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full">
+        <label>Designação do CPCV <span class="req">*</span></label>
+        <input type="text" id="proc-designacao" placeholder="Ex: Quinta das Flores — Montemor-o-Novo" oninput="updateProgress()">
+      </div>
+      <div class="field">
+        <label>Agência / Localização <span class="req">*</span></label>
+        <select id="proc-agencia">
+          <option value="">Selecionar...</option>
+          <option>REMAX Prime Team — Beja</option>
+          <option>REMAX Prime Team — Montemor-o-Novo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nome do consultor <span class="req">*</span></label>
+        <input type="text" id="proc-consultor" placeholder="Nome completo do consultor" oninput="updateProgress()">
+      </div>
+      <div class="field">
+        <label>Telemóvel do consultor <span class="req">*</span></label>
+        <input type="tel" id="proc-tel" placeholder="9XX XXX XXX">
+      </div>
+    </div>
+  </div>
+
+  <!-- ① PARTE VENDEDORA -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>1</span></div>
+      <div><div class="section-title">Promitente Parte Vendedora</div><div class="section-sub">Dados completos de quem vende o imóvel</div></div>
+    </div>
+    <div id="vendedores-container"></div>
+    <button class="add-btn" onclick="addPessoa('vendedores')">+ Adicionar outro vendedor</button>
+  </div>
+
+  <!-- ② PARTE COMPRADORA -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>2</span></div>
+      <div><div class="section-title">Promitente Parte Compradora</div><div class="section-sub">Dados completos de quem compra o imóvel</div></div>
+    </div>
+    <div id="compradores-container"></div>
+    <button class="add-btn" onclick="addPessoa('compradores')">+ Adicionar outro comprador</button>
+  </div>
+
+  <!-- ③ IMÓVEL -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>3</span></div>
+      <div><div class="section-title">Identificação do Imóvel</div><div class="section-sub">Dados da certidão permanente e caderneta predial</div></div>
+    </div>
+    <div class="field-grid">
+      <div class="field field-full">
+        <label>Morada completa do imóvel <span class="req">*</span></label>
+        <input type="text" id="imovel-morada" placeholder="Ex: Rua das Flores, n.º 5, 1.º Direito, 7000-000 Évora">
+      </div>
+      <div class="field">
+        <label>Tipo de prédio <span class="req">*</span></label>
+        <select id="imovel-tipo">
+          <option value="">Selecionar...</option>
+          <option>Fração autónoma</option>
+          <option>Prédio urbano</option>
+          <option>Prédio rústico</option>
+          <option>Prédio misto</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Conservatória do Registo Predial <span class="req">*</span></label>
+        <input type="text" id="imovel-conservatoria" placeholder="Ex: Évora">
+      </div>
+      <div class="field">
+        <label>Nº de descrição na conservatória <span class="req">*</span></label>
+        <input type="text" id="imovel-descricao" placeholder="Ex: 1234">
+      </div>
+      <div class="field">
+        <label>Freguesia (na conservatória) <span class="req">*</span></label>
+        <input type="text" id="imovel-freguesia" placeholder="Ex: Évora (Sé e São Pedro)">
+      </div>
+      <div class="field field-full">
+        <label>Artigo(s) matricial(is) urbano(s)</label>
+        <input type="text" id="imovel-matriz-u" placeholder="Ex: Artigo 1234 da freguesia de Évora (VPT: 85.000 €, ano 2024)">
+        <div class="field-hint">Se houver mais do que um, separe por vírgula ou nova linha</div>
+      </div>
+      <div class="field field-full">
+        <label>Artigo(s) matricial(is) rústico(s) (se aplicável)</label>
+        <input type="text" id="imovel-matriz-r" placeholder="Ex: Artigo 511, Secção S, da freguesia de Nossa Senhora da Vila (VPT: 106,21 €, ano 1989)">
+      </div>
+      <div class="field field-full">
+        <label>Ónus ou encargos sobre o imóvel</label>
+        <select id="imovel-onus" onchange="document.getElementById('onus-desc').style.display=this.value==='sim'?'block':'none'">
+          <option value="nao">Não existem ónus ou encargos</option>
+          <option value="sim">Sim, existem</option>
+          <option value="desconhece">Desconheço</option>
+        </select>
+      </div>
+      <div class="field field-full" id="onus-desc" style="display:none">
+        <label>Descrição dos ónus</label>
+        <textarea id="imovel-onus-desc" rows="2" placeholder="Ex: Hipoteca a favor do banco X..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ PREÇO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>4</span></div>
+      <div><div class="section-title">Preço e Forma de Pagamento</div><div class="section-sub">Valores acordados entre as partes</div></div>
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full">
+        <label>Preço total acordado (€) <span class="req">*</span></label>
+        <input type="text" id="preco-total" placeholder="Ex: 265.000,00">
+      </div>
+      <div class="field field-full">
+        <label>Sinal / entrada inicial (€)</label>
+        <input type="text" id="preco-sinal" placeholder="Ex: 26.500,00 — deixe em branco se não houver">
+      </div>
+      <div class="field">
+        <label>Data do pagamento do sinal</label>
+        <input type="date" id="preco-sinal-data">
+      </div>
+      <div class="field">
+        <label>Forma de pagamento do sinal</label>
+        <select id="preco-sinal-forma">
+          <option value="">— Não aplicável —</option>
+          <option>Transferência bancária</option>
+          <option>Cheque</option>
+          <option>Numerário</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>IBAN do comprador (para sinal por transferência)</label>
+        <input type="text" id="preco-iban-c" placeholder="PT50...">
+      </div>
+      <div class="field">
+        <label>IBAN do vendedor (para sinal por transferência)</label>
+        <input type="text" id="preco-iban-v" placeholder="PT50...">
+      </div>
+      <div class="field field-full">
+        <label>Reforço de sinal (€) — se houver</label>
+        <input type="text" id="preco-reforco" placeholder="Ex: 50.000,00 — deixe em branco se não houver">
+      </div>
+      <div class="field">
+        <label>Data do reforço</label>
+        <input type="date" id="preco-reforco-data">
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ PRAZO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>5</span></div>
+      <div><div class="section-title">Prazo para Escritura</div></div>
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full">
+        <label>Data limite para outorga da escritura <span class="req">*</span></label>
+        <input type="date" id="prazo-data">
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑥ CERT. ENERGÉTICO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>6</span></div>
+      <div><div class="section-title">Certificado Energético</div></div>
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full">
+        <label>Tipo <span class="req">*</span></label>
+        <select id="cert-tipo" onchange="document.getElementById('cert-extra').style.display=this.value&&this.value!=='na'?'grid':'none'">
+          <option value="">Selecionar...</option>
+          <option value="certificado">Certificado energético (SCE)</option>
+          <option value="isencao">Certificado de isenção energética</option>
+          <option value="na">Não aplicável</option>
+        </select>
+      </div>
+      <div id="cert-extra" class="field-grid field-grid-2" style="display:none;grid-column:1/-1">
+        <div class="field">
+          <label>Número do certificado <span class="req">*</span></label>
+          <input type="text" id="cert-num" placeholder="Ex: SCE398909139">
+        </div>
+        <div class="field">
+          <label>Válido até / data de emissão <span class="req">*</span></label>
+          <input type="date" id="cert-data">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑦ MEDIAÇÃO -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>7</span></div>
+      <div><div class="section-title">Mediação Imobiliária</div></div>
+    </div>
+    <div class="field-grid">
+      <div id="med-container"></div>
+      <button class="add-btn" onclick="addMediadora()" type="button">+ Houve intervenção de outra mediadora imobiliária?</button>
+    </div>
+  </div>
+
+  <!-- ⑧ CONTACTOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>8</span></div>
+      <div><div class="section-title">Contactos</div><div class="section-sub">Para envio de notificações e documentação</div></div>
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field">
+        <label>Email da parte vendedora <span class="req">*</span></label>
+        <input type="email" id="email-vendedor" placeholder="vendedor@email.com">
+      </div>
+      <div class="field">
+        <label>Email da parte compradora <span class="req">*</span></label>
+        <input type="email" id="email-comprador" placeholder="comprador@email.com">
+      </div>
+      <div class="field">
+        <label>Telemóvel vendedor</label>
+        <input type="tel" id="tel-vendedor" placeholder="9XX XXX XXX">
+      </div>
+      <div class="field">
+        <label>Telemóvel comprador</label>
+        <input type="tel" id="tel-comprador" placeholder="9XX XXX XXX">
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑨ DOCUMENTOS / ANEXOS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>9</span></div>
+      <div><div class="section-title">Documentos</div><div class="section-sub">Anexe os documentos necessários (CC, certidão predial, caderneta, etc.)</div></div>
+    </div>
+    <div class="field-grid">
+      <div class="field field-full">
+        <label>Selecionar ficheiros</label>
+        <input type="file" id="anexos" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.doc" style="padding:10px;border:1px dashed var(--gold-border);border-radius:6px;background:var(--gold-light);cursor:pointer;font-size:13px">
+        <div class="field-hint">PDF, imagens ou Word — pode seleccionar vários ficheiros em simultâneo</div>
+      </div>
+      <div id="anexos-lista" style="display:none;font-size:13px;color:var(--ink-soft)"></div>
+    </div>
+  </div>
+
+  <!-- ⑩ OBSERVAÇÕES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num"><span>10</span></div><div class="section-sub">Informação adicional relevante para o contrato</div></div>
+    </div>
+    <div class="field">
+      <label>Observações livres</label>
+      <textarea id="observacoes" rows="4" placeholder="Qualquer informação que considere relevante para a preparação do contrato..."></textarea>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER FIXO -->
+<div class="sticky">
+  <div class="sticky-info">
+    <strong id="sticky-nome">LBC Solicitadora</strong>
+    <span id="sticky-progresso">Preenche os campos e submete</span>
+  </div>
+  <div class="btns">
+    <button class="btn" onclick="imprimirComprovativo()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5V2h8v3M4 11H2V6h12v5h-2M4 9h8v5H4z"/></svg>
+      Imprimir / guardar PDF
+    </button>
+    <button class="btn btn-primary" onclick="submeter()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8l6 6 8-8"/></svg>
+      Submeter dados
+    </button>
+  </div>
+</div>
+
+<script>
+// ─── PESSOAS ──────────────────────────────────────────────────────────────────
+let vcnt=0,ccnt=0,mcnt=0;
+
+function addPessoa(tipo){
+  const idx=tipo==='vendedores'?++vcnt:++ccnt;
+  const id=`${tipo}-${idx}`;
+  const lbl=tipo==='vendedores'?'Vendedor':'Comprador';
+  const div=document.createElement('div');div.className='person-block';div.id=id;
+  div.innerHTML=`
+    <div class="person-header">
+      <span class="person-label">${lbl} ${idx}</span>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <div class="person-type">
+          <button class="type-btn active" onclick="setPessoaTipo('${id}','singular',this)" type="button">Pessoa singular</button>
+          <button class="type-btn" onclick="setPessoaTipo('${id}','empresa',this)" type="button">Empresa</button>
+        </div>
+        ${idx>1?`<button class="remove-btn" onclick="document.getElementById('${id}').remove();updateProgress()" type="button">×</button>`:''}
+      </div>
+    </div>
+    <div id="${id}-singular">
+      <div class="field-grid field-grid-2">
+        <div class="field field-full"><label>Nome completo <span class="req">*</span></label><input type="text" id="${id}-nome" placeholder="Como consta no Cartão de Cidadão" oninput="updateProgress()"></div>
+        <div class="field"><label>Género</label><select id="${id}-genero"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+        <div class="field"><label>Natural de <span class="req">*</span></label><input type="text" id="${id}-natal" placeholder="Ex: Évora (Sé e São Pedro)"></div>
+        <div class="field"><label>Nº Cartão de Cidadão <span class="req">*</span></label><input type="text" id="${id}-cc" placeholder="Ex: 12345678 9ZX0"></div>
+        <div class="field"><label>Válido até <span class="req">*</span></label><input type="date" id="${id}-ccval"></div>
+        <div class="field"><label>NIF <span class="req">*</span></label><input type="text" id="${id}-nif" placeholder="Ex: 123.456.789"></div>
+        <div class="field"><label>Estado civil <span class="req">*</span></label>
+          <select id="${id}-ec" onchange="onEC('${id}')">
+            <option value="solteiro">Solteiro(a), maior</option>
+            <option value="casado">Casado(a)</option>
+            <option value="divorciado">Divorciado(a)</option>
+            <option value="viuvo">Viúvo(a)</option>
+          </select>
+        </div>
+        <div class="field field-full"><label>Morada <span class="req">*</span></label><input type="text" id="${id}-morada" placeholder="Rua, n.º, código postal, localidade"></div>
+      </div>
+      <div class="casado-block" id="${id}-casado" style="display:none">
+        <div class="casado-title">Dados do casamento</div>
+        <div class="field-grid field-grid-2">
+          <div class="field"><label>Regime de bens <span class="req">*</span></label>
+            <select id="${id}-regime">
+              <option>Comunhão de adquiridos</option><option>Separação de bens</option>
+              <option>Separação total de bens</option><option>Comunhão geral</option>
+            </select>
+          </div>
+          <div class="field"><label>Cônjuge também outorga?</label>
+            <select id="${id}-coj-out" onchange="onCojOut('${id}')">
+              <option value="sim">Sim — assina o contrato</option><option value="nao">Não</option>
+            </select>
+          </div>
+        </div>
+        <div id="${id}-coj-dados" style="margin-top:.75rem">
+          <div class="field-grid field-grid-2">
+            <div class="field field-full"><label>Nome completo do cônjuge <span class="req">*</span></label><input type="text" id="${id}-coj-nome" placeholder="Como consta no CC" style="text-transform:uppercase"></div>
+            <div class="field"><label>Género</label><select id="${id}-coj-gen"><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+            <div class="field"><label>Natural de</label><input type="text" id="${id}-coj-natal"></div>
+            <div class="field"><label>Nº CC</label><input type="text" id="${id}-coj-cc"></div>
+            <div class="field"><label>Válido até</label><input type="date" id="${id}-coj-ccval"></div>
+            <div class="field"><label>NIF</label><input type="text" id="${id}-coj-nif"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="${id}-empresa" style="display:none">
+      <div class="field-grid field-grid-2">
+        <div class="field field-full"><label>Denominação social <span class="req">*</span></label><input type="text" id="${id}-emp-nome" style="text-transform:uppercase"></div>
+        <div class="field"><label>NIF <span class="req">*</span></label><input type="text" id="${id}-emp-nif"></div>
+        <div class="field field-full"><label>Sede social <span class="req">*</span></label><input type="text" id="${id}-emp-sede"></div>
+        <div class="field"><label>Nome do representante <span class="req">*</span></label><input type="text" id="${id}-emp-rep" style="text-transform:uppercase"></div>
+        <div class="field"><label>Cargo do representante</label><input type="text" id="${id}-emp-cargo" placeholder="Ex: Gerente, Administrador"></div>
+        <div class="field"><label>NIF do representante</label><input type="text" id="${id}-emp-rep-nif"></div>
+      </div>
+    </div>`;
+  document.getElementById(`${tipo}-container`).appendChild(div);
+  updateProgress();
+}
+
+function setPessoaTipo(id,tipo,btn){
+  btn.closest('.person-type').querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`${id}-singular`).style.display=tipo==='singular'?'block':'none';
+  document.getElementById(`${id}-empresa`).style.display=tipo==='empresa'?'block':'none';
+}
+function onEC(id){
+  document.getElementById(`${id}-casado`).style.display=document.getElementById(`${id}-ec`).value==='casado'?'block':'none';
+}
+function onCojOut(id){
+  document.getElementById(`${id}-coj-dados`).style.display=document.getElementById(`${id}-coj-out`).value==='sim'?'block':'none';
+}
+function addMediadora(nome='',ami=''){
+  const idx=++mcnt;
+  const div=document.createElement('div');div.className='person-block';div.id=`med-${idx}`;
+  div.innerHTML=`
+    <div class="person-header">
+      <span class="person-label">Mediadora ${idx}</span>
+      ${idx>1?`<button class="remove-btn" onclick="document.getElementById('med-${idx}').remove()" type="button">×</button>`:''}
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full"><label>Nome da mediadora <span class="req">*</span></label><input type="text" id="med-${idx}-nome" value="${nome}" style="text-transform:uppercase" placeholder="Ex: PRIME TEAM — MEDIAÇÃO IMOBILIÁRIA, LDA" ${idx===1?'readonly style="background:#f5f5f3;text-transform:uppercase"':''}></div>
+      <div class="field"><label>Licença AMI <span class="req">*</span></label><input type="text" id="med-${idx}-ami" value="${ami}" placeholder="Ex: 13123" ${idx===1?'readonly style="background:#f5f5f3"':''}></div>
+      ${idx===1?'<div class="field field-full" style="grid-column:1/-1"><span style="font-size:11px;color:var(--ink-faint);font-style:italic">Mediadora pré-definida — REMAX Portugal, SA</span></div>':''}
+    </div>`;
+  document.getElementById('med-container').appendChild(div);
+}
+
+// ─── PROGRESSO ────────────────────────────────────────────────────────────────
+function updateProgress(){
+  const campos=document.querySelectorAll('input[type=text],input[type=email],input[type=date]');
+  const total=campos.length;const preench=[...campos].filter(i=>i.value.trim()).length;
+  const pct=total?Math.round(preench/total*100):0;
+  document.getElementById('progress').style.width=pct+'%';
+  document.getElementById('sticky-progresso').textContent=`${pct}% preenchido`;
+}
+document.addEventListener('input',e=>{
+  updateProgress();
+  const des=document.getElementById('proc-designacao')?.value;
+  const con=document.getElementById('proc-consultor')?.value;
+  if(des)document.getElementById('sticky-nome').textContent=des;
+  if(con)document.getElementById('sticky-progresso').textContent='Consultor: '+con;
+});
+
+// ─── RECOLHER DADOS ───────────────────────────────────────────────────────────
+function recolherDados(){
+  const d={};
+  document.querySelectorAll('input,select,textarea').forEach(el=>{if(el.id)d[el.id]=el.value;});
+  return d;
+}
+
+// ─── SUBMETER ─────────────────────────────────────────────────────────────────
+function submeter(){
+  const nome1=document.getElementById('vendedores-1-nome')?.value||document.getElementById('vendedores-1-emp-nome')?.value||'';
+  const designacao=document.getElementById('proc-designacao').value.trim();
+  const emailV=document.getElementById('email-vendedor').value.trim();
+  const emailC=document.getElementById('email-comprador').value.trim();
+  if(!designacao){showToast('Preenche a designação do processo','err');return;}
+  if(!nome1){showToast('Preenche pelo menos o nome do vendedor','err');return;}
+  const d=recolherDados();
+  const linhas=[];
+  linhas.push('=== DADOS PARA CPCV — LBC SOLICITADORA ===\n');
+  linhas.push(`Designação: ${designacao}`);
+  linhas.push(`Agência: ${d['proc-agencia']||''}`);
+  linhas.push(`Consultor: ${d['proc-consultor']||''} | Tel: ${d['proc-tel']||''}`);
+  linhas.push(`Data de submissão: ${new Date().toLocaleString('pt-PT')}\n`);
+  linhas.push('\n--- PARTE VENDEDORA ---');
+  for(let i=1;i<=vcnt;i++){
+    const n=d[`vendedores-${i}-nome`]||d[`vendedores-${i}-emp-nome`]||'';
+    if(n)linhas.push(`Vendedor ${i}: ${n} | NIF: ${d[`vendedores-${i}-nif`]||d[`vendedores-${i}-emp-nif`]||''} | CC: ${d[`vendedores-${i}-cc`]||''} | Nat.: ${d[`vendedores-${i}-natal`]||''} | EC: ${d[`vendedores-${i}-ec`]||''} | Morada: ${d[`vendedores-${i}-morada`]||''}`);
+  }
+  linhas.push('\n--- PARTE COMPRADORA ---');
+  for(let i=1;i<=ccnt;i++){
+    const n=d[`compradores-${i}-nome`]||d[`compradores-${i}-emp-nome`]||'';
+    if(n)linhas.push(`Comprador ${i}: ${n} | NIF: ${d[`compradores-${i}-nif`]||d[`compradores-${i}-emp-nif`]||''} | CC: ${d[`compradores-${i}-cc`]||''} | Nat.: ${d[`compradores-${i}-natal`]||''} | EC: ${d[`compradores-${i}-ec`]||''} | Morada: ${d[`compradores-${i}-morada`]||''}`);
+  }
+  linhas.push('\n--- IMÓVEL ---');
+  linhas.push(`Morada: ${d['imovel-morada']||''}`);
+  linhas.push(`Tipo: ${d['imovel-tipo']||''}`);
+  linhas.push(`Conservatória: ${d['imovel-conservatoria']||''} | Nº: ${d['imovel-descricao']||''} | Freguesia: ${d['imovel-freguesia']||''}`);
+  linhas.push(`Matriz urbana: ${d['imovel-matriz-u']||''}`);
+  linhas.push(`Matriz rústica: ${d['imovel-matriz-r']||''}`);
+  linhas.push(`Ónus: ${d['imovel-onus']||''} ${d['imovel-onus-desc']?'— '+d['imovel-onus-desc']:''}`);
+  linhas.push('\n--- PREÇO ---');
+  linhas.push(`Preço total: ${d['preco-total']||''}`);
+  linhas.push(`Sinal: ${d['preco-sinal']||''} em ${d['preco-sinal-data']||''} por ${d['preco-sinal-forma']||''}`);
+  linhas.push(`IBAN comprador: ${d['preco-iban-c']||''} | IBAN vendedor: ${d['preco-iban-v']||''}`);
+  linhas.push(`Reforço: ${d['preco-reforco']||''} em ${d['preco-reforco-data']||''}`);
+  linhas.push('\n--- PRAZO ---');
+  linhas.push(`Data limite escritura: ${d['prazo-data']||''} | Tribunal competente: Comarca da situação do prédio`);
+  linhas.push('\n--- CERT. ENERGÉTICO ---');
+  linhas.push(`Tipo: ${d['cert-tipo']||''} | Nº: ${d['cert-num']||''} | Válido: ${d['cert-data']||''}`);
+  linhas.push('\n--- MEDIAÇÃO ---');
+  for(let i=1;i<=mcnt;i++){const n=d[`med-${i}-nome`]||'';const a=d[`med-${i}-ami`]||'';if(n)linhas.push(`Mediadora ${i}: ${n} | AMI ${a}`);}
+  linhas.push('\n--- CONTACTOS ---');
+  linhas.push(`Email vendedor: ${emailV} | Tel: ${d['tel-vendedor']||''}`);
+  linhas.push(`Email comprador: ${emailC} | Tel: ${d['tel-comprador']||''}`);
+  const ficheiros=[...document.getElementById('anexos').files];
+  if(ficheiros.length){
+    linhas.push('\n--- DOCUMENTOS ANEXADOS ---');
+    ficheiros.forEach(f=>linhas.push(`• ${f.name} (${(f.size/1024).toFixed(0)} KB)`));
+    linhas.push('\n⚠ Os ficheiros devem ser enviados manualmente em anexo neste email.');
+  }
+  if(d['observacoes'])linhas.push(`\n--- OBSERVAÇÕES ---\n${d['observacoes']}`);
+  const corpo=linhas.join('\n');
+  const assunto=encodeURIComponent(`Dados CPCV — ${designacao||nome1}`);
+  const body=encodeURIComponent(corpo);
+  window.open(`https://outlook.cloud.microsoft/mail/deeplink/compose?to=juridico2.ideal%40remax.pt&subject=${assunto}&body=${body}`,'_blank');
+  // Marcar comprovativo
+  document.getElementById('data-subm').textContent=new Date().toLocaleString('pt-PT');
+  document.getElementById('print-comprovativo').style.display='block';
+  showToast('Email aberto no Outlook!','ok');
+}
+
+// ─── IMPRIMIR ─────────────────────────────────────────────────────────────────
+function imprimirComprovativo(){
+  document.getElementById('print-comprovativo').style.display='block';
+  document.getElementById('data-subm').textContent=new Date().toLocaleString('pt-PT');
+  window.print();
+}
+
+// ─── ANEXOS ───────────────────────────────────────────────────────────────────
+document.addEventListener('change',e=>{
+  if(e.target.id==='anexos'){
+    const files=[...e.target.files];
+    const lista=document.getElementById('anexos-lista');
+    if(files.length){
+      lista.style.display='block';
+      lista.innerHTML='<div style="font-weight:600;margin-bottom:.4rem;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft)">Ficheiros seleccionados:</div>'+
+        files.map(f=>`<div style="display:flex;align-items:center;gap:.4rem;padding:.25rem 0;border-bottom:1px solid var(--gold-border)">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M9 1H3a1 1 0 00-1 1v12a1 1 0 001 1h10a1 1 0 001-1V6l-5-5z"/><path d="M9 1v5h5"/></svg>
+          <span>${f.name}</span>
+          <span style="margin-left:auto;color:var(--ink-faint);font-size:11px">${(f.size/1024).toFixed(0)} KB</span>
+        </div>`).join('');
+    }else{lista.style.display='none';}
+  }
+});
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg,tipo=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+tipo;setTimeout(()=>t.className='toast',3500);}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.onload=()=>{
+  addPessoa('vendedores');
+  addPessoa('compradores');
+  addMediadora('PRIME TEAM — SOCIEDADE DE MEDIAÇÃO IMOBILIÁRIA, UNIPESSOAL, LDA','13123');
+  updateProgress();
+};
+</script>
+</body>
+</html>
