@@ -282,39 +282,83 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
         <label>Preço total acordado (€) <span class="req">*</span></label>
         <input type="text" id="preco-total" placeholder="Ex: 265.000,00">
       </div>
+
       <div class="field field-full">
-        <label>Sinal / entrada inicial (€)</label>
-        <input type="text" id="preco-sinal" placeholder="Ex: 26.500,00 — deixe em branco se não houver">
-      </div>
-      <div class="field">
-        <label>Data do pagamento do sinal</label>
-        <input type="date" id="preco-sinal-data">
-      </div>
-      <div class="field">
-        <label>Forma de pagamento do sinal</label>
-        <select id="preco-sinal-forma">
-          <option value="">— Não aplicável —</option>
-          <option>Transferência bancária</option>
-          <option>Cheque</option>
-          <option>Numerário</option>
+        <label>Há entrega de sinal no presente contrato? <span class="req">*</span></label>
+        <select id="tem-sinal" onchange="toggleSinal(this.value)">
+          <option value="">Selecionar...</option>
+          <option value="sim">Sim, há entrega de sinal</option>
+          <option value="nao">Não há entrega de sinal</option>
         </select>
+        <div class="field-hint">Se não houver sinal, será prevista uma cláusula penal para o incumprimento</div>
       </div>
-      <div class="field">
-        <label>IBAN do comprador (para sinal por transferência)</label>
-        <input type="text" id="preco-iban-c" placeholder="PT50...">
+
+      <!-- BLOCO SINAL -->
+      <div id="bloco-sinal" class="field-grid field-grid-2" style="display:none;grid-column:1/-1;gap:1rem">
+        <div class="field field-full">
+          <label>Sinal / entrada inicial (€)</label>
+          <input type="text" id="preco-sinal" placeholder="Ex: 26.500,00">
+        </div>
+        <div class="field">
+          <label>Data do pagamento do sinal</label>
+          <input type="date" id="preco-sinal-data">
+        </div>
+        <div class="field">
+          <label>Forma de pagamento do sinal</label>
+          <select id="preco-sinal-forma">
+            <option value="">— Selecionar —</option>
+            <option>Transferência bancária</option>
+            <option>Cheque</option>
+            <option>Numerário</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>IBAN do comprador (para sinal por transferência)</label>
+          <input type="text" id="preco-iban-c" placeholder="PT50...">
+        </div>
+        <div class="field">
+          <label>IBAN do vendedor (para sinal por transferência)</label>
+          <input type="text" id="preco-iban-v" placeholder="PT50...">
+        </div>
+        <div class="field field-full">
+          <label>Reforço de sinal (€) — se houver</label>
+          <input type="text" id="preco-reforco" placeholder="Ex: 50.000,00 — deixe em branco se não houver">
+        </div>
+        <div class="field">
+          <label>Data do reforço</label>
+          <input type="date" id="preco-reforco-data">
+        </div>
       </div>
-      <div class="field">
-        <label>IBAN do vendedor (para sinal por transferência)</label>
-        <input type="text" id="preco-iban-v" placeholder="PT50...">
+
+      <!-- BLOCO CLÁUSULA PENAL (sem sinal) -->
+      <div id="bloco-clausula-penal" class="casado-block" style="display:none;grid-column:1/-1">
+        <div class="casado-title">Cláusula penal por incumprimento (sem sinal)</div>
+        <div class="field-grid field-grid-2" style="gap:1rem">
+          <div class="field field-full">
+            <label>Como pretende fixar o valor da cláusula penal? <span class="req">*</span></label>
+            <select id="cp-modo" onchange="toggleCPModo(this.value)">
+              <option value="">Selecionar...</option>
+              <option value="euros">Valor fixo em euros</option>
+              <option value="percent">Percentagem sobre o preço</option>
+              <option value="ambos">Valor em euros correspondente a uma percentagem do preço</option>
+            </select>
+          </div>
+          <div class="field" id="cp-euros-wrap" style="display:none">
+            <label>Valor em euros (€)</label>
+            <input type="text" id="cp-euros" placeholder="Ex: 26.500,00">
+          </div>
+          <div class="field" id="cp-percent-wrap" style="display:none">
+            <label>Percentagem sobre o preço (%)</label>
+            <input type="text" id="cp-percent" placeholder="Ex: 10">
+            <div class="field-hint">Recomendado: entre 10% e 20% do preço</div>
+          </div>
+          <div class="field field-full">
+            <label>Observações sobre a cláusula penal (opcional)</label>
+            <textarea id="cp-obs" rows="2" placeholder="Ex: qualquer nota adicional sobre a cláusula penal..."></textarea>
+          </div>
+        </div>
       </div>
-      <div class="field field-full">
-        <label>Reforço de sinal (€) — se houver</label>
-        <input type="text" id="preco-reforco" placeholder="Ex: 50.000,00 — deixe em branco se não houver">
-      </div>
-      <div class="field">
-        <label>Data do reforço</label>
-        <input type="date" id="preco-reforco-data">
-      </div>
+
     </div>
   </div>
 
@@ -553,6 +597,20 @@ function addMediadora(nome='',ami=''){
   document.getElementById('med-container').appendChild(div);
 }
 
+// ─── TOGGLE SINAL / CLÁUSULA PENAL ────────────────────────────────────────────
+function toggleSinal(v){
+  const blocoSinal=document.getElementById('bloco-sinal');
+  const blocoCP=document.getElementById('bloco-clausula-penal');
+  if(v==='sim'){blocoSinal.style.display='grid';blocoCP.style.display='none';}
+  else if(v==='nao'){blocoSinal.style.display='none';blocoCP.style.display='block';}
+  else{blocoSinal.style.display='none';blocoCP.style.display='none';}
+  updateProgress();
+}
+function toggleCPModo(v){
+  document.getElementById('cp-euros-wrap').style.display=(v==='euros'||v==='ambos')?'flex':'none';
+  document.getElementById('cp-percent-wrap').style.display=(v==='percent'||v==='ambos')?'flex':'none';
+}
+
 // ─── PROGRESSO ────────────────────────────────────────────────────────────────
 function updateProgress(){
   const campos=document.querySelectorAll('input[type=text],input[type=email],input[type=date]');
@@ -610,9 +668,22 @@ function submeter(){
   linhas.push(`Ónus: ${d['imovel-onus']||''} ${d['imovel-onus-desc']?'— '+d['imovel-onus-desc']:''}`);
   linhas.push('\n--- PREÇO ---');
   linhas.push(`Preço total: ${d['preco-total']||''}`);
-  linhas.push(`Sinal: ${d['preco-sinal']||''} em ${d['preco-sinal-data']||''} por ${d['preco-sinal-forma']||''}`);
-  linhas.push(`IBAN comprador: ${d['preco-iban-c']||''} | IBAN vendedor: ${d['preco-iban-v']||''}`);
-  linhas.push(`Reforço: ${d['preco-reforco']||''} em ${d['preco-reforco-data']||''}`);
+  const temSinal=d['tem-sinal']||'';
+  if(temSinal==='sim'){
+    linhas.push(`Há sinal: SIM`);
+    linhas.push(`Sinal: ${d['preco-sinal']||''} em ${d['preco-sinal-data']||''} por ${d['preco-sinal-forma']||''}`);
+    linhas.push(`IBAN comprador: ${d['preco-iban-c']||''} | IBAN vendedor: ${d['preco-iban-v']||''}`);
+    linhas.push(`Reforço: ${d['preco-reforco']||''} em ${d['preco-reforco-data']||''}`);
+  } else if(temSinal==='nao'){
+    linhas.push(`Há sinal: NÃO — aplicar cláusula penal`);
+    const modo=d['cp-modo']||'';
+    linhas.push(`Modo da cláusula penal: ${modo}`);
+    if(modo==='euros'||modo==='ambos')linhas.push(`Valor em euros: ${d['cp-euros']||''}`);
+    if(modo==='percent'||modo==='ambos')linhas.push(`Percentagem: ${d['cp-percent']||''}%`);
+    if(d['cp-obs'])linhas.push(`Obs. cláusula penal: ${d['cp-obs']}`);
+  } else {
+    linhas.push(`Há sinal: (não indicado)`);
+  }
   linhas.push('\n--- PRAZO ---');
   linhas.push(`Data limite escritura: ${d['prazo-data']||''} | Tribunal competente: Comarca da situação do prédio`);
   linhas.push('\n--- CERT. ENERGÉTICO ---');
