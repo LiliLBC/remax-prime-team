@@ -93,26 +93,31 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
 .toast.err{background:var(--red)}
 
 /* PRINT */
+@page{size:A4;margin:12mm 10mm}
 @media print{
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:white;font-family:Arial,sans-serif;font-size:10px;color:#000;line-height:1.3}
+  body{background:white;font-family:Arial,sans-serif;font-size:10px;color:#000;line-height:1.35}
   .header,.sticky,.progress-bar,.add-btn,.remove-btn,.person-type,.privacy-note,.print-comprovativo,.field input[type=file]{display:none!important}
   .form-wrap{padding:0;max-width:100%}
-  .section{border:none;box-shadow:none;padding:0;margin:0;break-inside:avoid}
+  .section{border:none;box-shadow:none;padding:0;margin:0 0 6px 0;break-inside:avoid;page-break-inside:avoid}
   .section-header{padding:2px 0;margin-bottom:3px;border-bottom:1px solid #ccc}
   .section-num{display:none}
   .section-title{font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:.05em}
   .section-sub{display:none}
+  /* Layout dos campos: label fica em cima, valor em baixo — garante que valores longos não são cortados */
   .field-grid,.field-grid-2{display:block}
-  .field{display:flex;gap:4px;align-items:baseline;padding:1px 0;border-bottom:1px dotted #ddd}
-  .field label{font-size:9px;font-weight:bold;color:#555;text-transform:uppercase;white-space:nowrap;min-width:140px;flex-shrink:0}
-  .field input,.field select,.field textarea{border:none;font-size:10px;color:#000;background:transparent;padding:0;flex:1;font-family:Arial,sans-serif}
-  .field textarea{resize:none}
-  .person-block{border:none;background:transparent;padding:0;margin:2px 0}
+  .field{display:block;padding:2px 0;border-bottom:1px dotted #ddd;break-inside:avoid;page-break-inside:avoid}
+  .field label{display:block;font-size:8.5px;font-weight:bold;color:#555;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+  /* Inputs nativos: esconder porque vamos injectar o valor como texto via JS antes de imprimir */
+  .field input,.field select,.field textarea{display:none}
+  /* O valor é injectado num <span class="print-value"> antes do print */
+  .print-value{display:block;font-size:10px;color:#000;font-family:Arial,sans-serif;word-wrap:break-word;overflow-wrap:break-word;white-space:pre-wrap;min-height:12px}
+  .print-value:empty::before{content:"—";color:#999}
+  .person-block{border:none;background:transparent;padding:0;margin:2px 0;break-inside:avoid;page-break-inside:avoid}
   .person-label{font-size:9px;font-weight:bold;color:#888;text-transform:uppercase}
   .casado-block{border:none;background:transparent;padding:0;margin-left:10px}
   .casado-title{display:none}
-  .field-hint,.section-sub{display:none}
+  .field-hint{display:none}
   #cert-extra{display:block!important}
   #med-dados{display:block!important}
   #onus-desc{display:block!important}
@@ -696,16 +701,93 @@ function submeter(){
   linhas.push('\n⚠ LEMBRETE: Anexa a este email o CC de todos os intervenientes, certidão permanente, caderneta predial e certificado energético.');
   if(d['observacoes'])linhas.push(`\n--- OBSERVAÇÕES ---\n${d['observacoes']}`);
   const corpo=linhas.join('\n');
-  const assunto=encodeURIComponent(`Dados CPCV — ${ag} — ${designacao||nome1}`);
+  const ag=d['proc-agencia']||'—';
+  const assuntoStr=`Dados CPCV — ${ag} — ${designacao||nome1}`;
+  const assunto=encodeURIComponent(assuntoStr);
   const body=encodeURIComponent(corpo);
-  window.open(`https://outlook.cloud.microsoft/mail/deeplink/compose?to=juridico2.ideal%40remax.pt&subject=${assunto}&body=${body}`,'_blank');
-  // Marcar comprovativo
+  // mailto: funciona em qualquer cliente de email (Outlook desktop, web, Gmail, Apple Mail, etc.)
+  // — não depende de o utilizador ter sessão Microsoft iniciada
+  const mailtoUrl=`mailto:juridico2.ideal@remax.pt?subject=${assunto}&body=${body}`;
+  // Guardar dados para o caso de o utilizador precisar de copiar manualmente
+  window._lastEmailData={corpo,assunto:assuntoStr};
+  // Abrir mailto
+  window.location.href=mailtoUrl;
+  // Marcar comprovativo + mostrar aviso discreto com link manual
   document.getElementById('data-subm').textContent=new Date().toLocaleString('pt-PT');
   document.getElementById('print-comprovativo').style.display='block';
-  showToast('Email aberto no Outlook!','ok');
+  mostrarAvisoEmail();
+  showToast('A abrir o teu email...','ok');
+}
+
+// Aviso discreto: aparece sempre após submeter, com link para o utilizador clicar
+// caso o cliente de email não tenha aberto automaticamente
+function mostrarAvisoEmail(){
+  let aviso=document.getElementById('aviso-email');
+  if(!aviso){
+    aviso=document.createElement('div');
+    aviso.id='aviso-email';
+    aviso.style.cssText='position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:#FFF8E1;border:1px solid #DDD0B3;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#57534E;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:9998;max-width:90%;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap';
+    aviso.innerHTML=`
+      <span>📧 O teu email não abriu?</span>
+      <button onclick="mostrarFallbackEmail()" style="padding:.4rem .8rem;border:none;background:#B08D57;color:#fff;border-radius:6px;cursor:pointer;font-size:12px">Copiar texto manualmente</button>
+      <button onclick="document.getElementById('aviso-email').remove()" style="padding:.4rem .6rem;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;font-size:12px">✕</button>`;
+    document.body.appendChild(aviso);
+  }
+}
+
+// Modal: mostra o texto pronto para copiar
+function mostrarFallbackEmail(){
+  const data=window._lastEmailData;
+  if(!data){showToast('Submete primeiro os dados','err');return;}
+  let modal=document.getElementById('modal-email-fallback');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='modal-email-fallback';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    modal.innerHTML=`
+      <div style="background:#fff;border-radius:12px;padding:1.5rem;max-width:600px;width:100%;max-height:90vh;display:flex;flex-direction:column;gap:.75rem;box-shadow:0 8px 32px rgba(0,0,0,.2)">
+        <h3 style="font-size:16px;font-weight:600;margin:0">📧 Copiar dados do email</h3>
+        <p style="font-size:13px;color:#555;margin:0">Envia para <strong>juridico2.ideal@remax.pt</strong> com o assunto:</p>
+        <div style="background:#F5EDD8;padding:.5rem .75rem;border-radius:6px;font-size:12px;font-family:monospace" id="fb-assunto"></div>
+        <textarea id="fb-corpo" readonly style="width:100%;flex:1;min-height:200px;padding:.75rem;border:1px solid #DDD0B3;border-radius:6px;font-family:monospace;font-size:11px;resize:vertical"></textarea>
+        <div style="display:flex;gap:.5rem;justify-content:flex-end">
+          <button onclick="document.getElementById('modal-email-fallback').remove()" style="padding:.5rem 1rem;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer">Fechar</button>
+          <button onclick="navigator.clipboard.writeText(document.getElementById('fb-corpo').value);showToast('Copiado!','ok')" style="padding:.5rem 1rem;border:none;background:#B08D57;color:#fff;border-radius:6px;cursor:pointer">📋 Copiar texto</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('fb-assunto').textContent=data.assunto;
+  document.getElementById('fb-corpo').value=data.corpo;
+  modal.style.display='flex';
 }
 
 // ─── IMPRIMIR ─────────────────────────────────────────────────────────────────
+function preparePrintValues(){
+  // Para cada input/select/textarea, criar um <span class="print-value"> com o valor visível
+  document.querySelectorAll('.field input,.field select,.field textarea').forEach(el=>{
+    if(el.type==='file'||el.type==='hidden')return;
+    let val='';
+    if(el.tagName==='SELECT'){
+      const opt=el.options[el.selectedIndex];
+      val=opt?opt.text:'';
+      if(val==='Selecionar...'||el.value==='')val='';
+    } else {
+      val=el.value||'';
+    }
+    // Procurar/criar o span print-value imediatamente a seguir ao input
+    let span=el.nextElementSibling;
+    if(!span||!span.classList||!span.classList.contains('print-value')){
+      span=document.createElement('span');
+      span.className='print-value';
+      el.parentNode.insertBefore(span,el.nextSibling);
+    }
+    span.textContent=val;
+  });
+}
+function cleanPrintValues(){
+  document.querySelectorAll('.print-value').forEach(s=>s.remove());
+}
 function imprimirComprovativo(){
   const des=document.getElementById('proc-designacao').value||'—';
   const con=document.getElementById('proc-consultor').value||'—';
@@ -713,8 +795,16 @@ function imprimirComprovativo(){
   document.getElementById('print-info').textContent=`Processo: ${des} | Agência: ${ag} | Consultor: ${con} | Data: ${new Date().toLocaleString('pt-PT')}`;
   document.getElementById('print-comprovativo').style.display='block';
   document.getElementById('data-subm').textContent=new Date().toLocaleString('pt-PT');
-  window.print();
+  preparePrintValues();
+  // Pequeno timeout para o browser aplicar o DOM antes de abrir o diálogo
+  setTimeout(()=>{
+    window.print();
+    // Após o diálogo fechar, limpar
+    setTimeout(cleanPrintValues,500);
+  },50);
 }
+// Limpar print-values também caso o utilizador cancele com afterprint
+window.addEventListener('afterprint',cleanPrintValues);
 
 // ─── TOAST ────────────────────────────────────────────────────────────────────
 function showToast(msg,tipo=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+tipo;setTimeout(()=>t.className='toast',3500);}
