@@ -3850,18 +3850,173 @@ function renderProcessos(lista){
   document.getElementById('proc-loading').style.display='none';
   const el=document.getElementById('proc-list');
   if(!lista.length){el.innerHTML='<div class="notice notice-info">Nenhuma pasta encontrada. Cria a primeira pasta de cliente!</div>';el.style.display='block';return;}
-  el.innerHTML=lista.map(p=>`
-    <div class="pasta-card">
+  el.innerHTML=lista.map(p=>{
+    const safeNome=escHtml(p.nome||'').replace(/'/g,'&#39;');
+    return `
+    <div class="pasta-card" id="pc-${p.id}">
       <div style="flex:1;min-width:0">
         <div class="pasta-ref">${escHtml(p.nome||'—')}</div>
         <div class="pasta-meta">Modificado: ${fmtData(p.lastModifiedDateTime)}</div>
       </div>
       <div class="pasta-actions">
-        <a href="${p.webUrl}" target="_blank" class="btn btn-sm">Abrir pasta</a>
+        <button class="btn btn-sm" onclick="toggleProcessosCliente('${p.id}','${safeNome}')" title="Ver processos">📂 Processos</button>
+        <button class="btn btn-sm" onclick="editarPastaCliente('${p.id}','${safeNome}')" title="Editar nome">✏️</button>
+        <button class="btn btn-sm" onclick="apagarPastaCliente('${p.id}','${safeNome}')" title="Apagar pasta" style="color:var(--red);border-color:var(--red)">🗑</button>
+        <a href="${p.webUrl}" target="_blank" class="btn btn-sm">Abrir</a>
         <button class="btn btn-primary btn-sm" onclick="iniciarSubpasta('${escHtml(p.nome||'')}','${escHtml(p.id||'')}')">+ Processo</button>
       </div>
-    </div>`).join('');
+    </div>
+    <div id="pc-procs-${p.id}" style="display:none;margin:-.5rem 0 .75rem 1.5rem;padding:.5rem .75rem;background:var(--surface2);border-left:3px solid var(--accent);border-radius:0 7px 7px 0"></div>`;
+  }).join('');
   el.style.display='block';
+}
+
+// ─── EDITAR / APAGAR PASTA DE CLIENTE ─────────────────────────────────────────
+async function editarPastaCliente(pastaId,nomeAtual){
+  const nomeDecod=nomeAtual.replace(/&#39;/g,"'");
+  const novoNome=prompt('Editar nome da pasta:',nomeDecod);
+  if(novoNome===null)return;
+  const trim=sanitizarNomePasta(novoNome.trim().toUpperCase());
+  if(!trim){showToast('O nome não pode estar vazio','error');return;}
+  if(trim===nomeDecod)return;
+  try{
+    await renovarToken();
+    const r=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${pastaId}`,{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+graphToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:trim})
+    });
+    if(!r.ok)throw new Error(`Erro ${r.status}`);
+    showToast(`Pasta renomeada para "${trim}"`,'success');
+    await carregarProcessos();
+  }catch(e){showToast('Erro ao renomear: '+e.message,'error');}
+}
+
+async function apagarPastaCliente(pastaId,nomeAtual){
+  const nomeDecod=nomeAtual.replace(/&#39;/g,"'");
+  // Primeiro verificar se está vazia (sem processos)
+  try{
+    await renovarToken();
+    const r=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${pastaId}/children?$top=5`,{
+      headers:{'Authorization':'Bearer '+graphToken}
+    });
+    if(!r.ok)throw new Error(`Erro ${r.status} ao verificar conteúdo`);
+    const data=await r.json();
+    const processos=(data.value||[]).filter(i=>i.folder);
+    const ficheiros=(data.value||[]).filter(i=>!i.folder);
+    if(processos.length>0||ficheiros.length>0){
+      const partes=[];
+      if(processos.length)partes.push(`${processos.length} ${processos.length===1?'processo':'processos'}`);
+      if(ficheiros.length)partes.push(`${ficheiros.length} ${ficheiros.length===1?'ficheiro':'ficheiros'}`);
+      alert(`Não é possível apagar a pasta "${nomeDecod}" — contém ${partes.join(' e ')} dentro.\n\nApaga primeiro o conteúdo (processos/ficheiros) e tenta de novo.`);
+      return;
+    }
+    // Pasta vazia — confirmar
+    if(!confirm(`Apagar a pasta vazia "${nomeDecod}"?\n\nEsta acção não pode ser desfeita.`))return;
+    const del=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${pastaId}`,{
+      method:'DELETE',headers:{'Authorization':'Bearer '+graphToken}
+    });
+    if(!del.ok&&del.status!==204)throw new Error(`Erro ${del.status}`);
+    showToast(`Pasta "${nomeDecod}" eliminada`,'success');
+    await carregarProcessos();
+  }catch(e){showToast('Erro: '+e.message,'error');}
+}
+
+// ─── EXPANDIR PROCESSOS DE UM CLIENTE ─────────────────────────────────────────
+async function toggleProcessosCliente(pastaId,nomeCliente){
+  const wrap=document.getElementById(`pc-procs-${pastaId}`);
+  if(!wrap)return;
+  if(wrap.style.display==='block'){
+    wrap.style.display='none';
+    return;
+  }
+  wrap.style.display='block';
+  wrap.innerHTML='<div style="font-size:11px;color:var(--text-faint);padding:.4rem">A carregar processos...</div>';
+  try{
+    await renovarToken();
+    const r=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${pastaId}/children?$top=200`,{
+      headers:{'Authorization':'Bearer '+graphToken}
+    });
+    if(!r.ok)throw new Error(`Erro ${r.status}`);
+    const data=await r.json();
+    const procs=(data.value||[]).filter(i=>i.folder).sort((a,b)=>(b.name||'').localeCompare(a.name||''));
+    if(!procs.length){
+      wrap.innerHTML='<div style="font-size:11px;color:var(--text-faint);padding:.4rem">Esta pasta ainda não tem processos. Clica em "+ Processo" para criar o primeiro.</div>';
+      return;
+    }
+    wrap.innerHTML=`<div style="font-size:10px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">${procs.length} ${procs.length===1?'processo':'processos'}</div>`+
+      procs.map(s=>{
+        const safeNomeProc=escHtml(s.name||'').replace(/'/g,'&#39;');
+        return `<div style="display:flex;align-items:center;gap:.4rem;padding:.4rem .55rem;margin-bottom:.3rem;background:var(--surface);border-radius:6px;border:1px solid var(--border)">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="var(--accent-dark)" stroke-width="1.5"><path d="M1 4a1 1 0 011-1h4l2 2h6a1 1 0 011 1v7a1 1 0 01-1 1H2a1 1 0 01-1-1V4z"/></svg>
+          <a href="${escHtml(s.webUrl||'#')}" target="_blank" style="flex:1;font-size:11px;font-family:'DM Mono',monospace;color:inherit;text-decoration:none">${escHtml(s.name)}</a>
+          <button class="btn btn-sm" onclick="editarProcesso('${s.id}','${safeNomeProc}','${pastaId}')" title="Renomear" style="padding:2px 6px;font-size:10px">✏️</button>
+          <button class="btn btn-sm" onclick="apagarProcesso('${s.id}','${safeNomeProc}','${pastaId}')" title="Apagar" style="padding:2px 6px;font-size:10px;color:var(--red);border-color:var(--red)">🗑</button>
+        </div>`;
+      }).join('');
+  }catch(e){
+    wrap.innerHTML=`<div class="notice notice-error" style="margin:0;font-size:11px">Erro: ${escHtml(e.message)}</div>`;
+  }
+}
+
+// ─── EDITAR / APAGAR PROCESSO (subpasta) ──────────────────────────────────────
+async function editarProcesso(procId,nomeAtual,pastaClienteId){
+  const nomeDecod=nomeAtual.replace(/&#39;/g,"'");
+  const novoNome=prompt('Renomear o processo:',nomeDecod);
+  if(novoNome===null)return;
+  const trim=sanitizarNomePasta(novoNome.trim());
+  if(!trim){showToast('O nome não pode estar vazio','error');return;}
+  if(trim===nomeDecod)return;
+  try{
+    await renovarToken();
+    const r=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${procId}`,{
+      method:'PATCH',
+      headers:{'Authorization':'Bearer '+graphToken,'Content-Type':'application/json'},
+      body:JSON.stringify({name:trim})
+    });
+    if(!r.ok)throw new Error(`Erro ${r.status}`);
+    showToast(`Processo renomeado`,'success');
+    // Recarregar lista de processos do cliente
+    const wrap=document.getElementById(`pc-procs-${pastaClienteId}`);
+    if(wrap)wrap.style.display='none';
+    toggleProcessosCliente(pastaClienteId,'');
+  }catch(e){showToast('Erro: '+e.message,'error');}
+}
+
+async function apagarProcesso(procId,nomeAtual,pastaClienteId){
+  const nomeDecod=nomeAtual.replace(/&#39;/g,"'");
+  try{
+    await renovarToken();
+    // Verificar se está vazio (sem ficheiros nem subpastas)
+    const r=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${procId}/children?$top=5`,{
+      headers:{'Authorization':'Bearer '+graphToken}
+    });
+    if(!r.ok)throw new Error(`Erro ${r.status} ao verificar conteúdo`);
+    const data=await r.json();
+    const itens=data.value||[];
+    if(itens.length===0){
+      // Vazio — 1 confirmação
+      if(!confirm(`Apagar o processo vazio "${nomeDecod}"?\n\nEsta acção não pode ser desfeita.`))return;
+    } else {
+      // Tem conteúdo — confirmação dupla
+      const subPastas=itens.filter(i=>i.folder).length;
+      const ficheiros=itens.filter(i=>!i.folder).length;
+      const partes=[];
+      if(ficheiros)partes.push(`${ficheiros} ${ficheiros===1?'ficheiro':'ficheiros'}`);
+      if(subPastas)partes.push(`${subPastas} ${subPastas===1?'subpasta':'subpastas'}`);
+      if(!confirm(`⚠ O processo "${nomeDecod}" contém ${partes.join(' e ')}.\n\nQueres mesmo apagar TUDO?`))return;
+      if(!confirm(`⚠ ATENÇÃO: confirmação final\n\nVais apagar DEFINITIVAMENTE o processo "${nomeDecod}" e todo o seu conteúdo (${partes.join(' e ')}).\n\nEsta acção é IRREVERSÍVEL. Confirmas?`))return;
+    }
+    const del=await fetch(`${GRAPH_BASE}/drives/${bibliotecaProcessosId}/items/${procId}`,{
+      method:'DELETE',headers:{'Authorization':'Bearer '+graphToken}
+    });
+    if(!del.ok&&del.status!==204)throw new Error(`Erro ${del.status}`);
+    showToast(`Processo "${nomeDecod}" eliminado`,'success');
+    // Recarregar lista
+    const wrap=document.getElementById(`pc-procs-${pastaClienteId}`);
+    if(wrap)wrap.style.display='none';
+    toggleProcessosCliente(pastaClienteId,'');
+  }catch(e){showToast('Erro: '+e.message,'error');}
 }
 
 function filtrarProcessos(){
