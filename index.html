@@ -318,12 +318,14 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
           </select>
         </div>
         <div class="field">
-          <label>IBAN do comprador (para sinal por transferência)</label>
-          <input type="text" id="preco-iban-c" placeholder="PT50...">
+          <label>IBAN(s) do comprador (para sinal por transferência)</label>
+          <div id="ibans-c"></div>
+          <button class="add-btn" type="button" onclick="addIban('c')">+ Adicionar outro IBAN do comprador</button>
         </div>
         <div class="field">
-          <label>IBAN do vendedor (para sinal por transferência)</label>
-          <input type="text" id="preco-iban-v" placeholder="PT50...">
+          <label>IBAN(s) do vendedor (para sinal por transferência)</label>
+          <div id="ibans-v"></div>
+          <button class="add-btn" type="button" onclick="addIban('v')">+ Adicionar outro IBAN do vendedor</button>
         </div>
         <div class="field field-full">
           <label>Reforço de sinal (€) — se houver</label>
@@ -565,13 +567,43 @@ function addPessoa(tipo){
         <div class="field field-full"><label>Denominação social <span class="req">*</span></label><input type="text" id="${id}-emp-nome" style="text-transform:uppercase"></div>
         <div class="field"><label>NIF <span class="req">*</span></label><input type="text" id="${id}-emp-nif"></div>
         <div class="field field-full"><label>Sede social <span class="req">*</span></label><input type="text" id="${id}-emp-sede"></div>
-        <div class="field"><label>Nome do representante <span class="req">*</span></label><input type="text" id="${id}-emp-rep" style="text-transform:uppercase"></div>
-        <div class="field"><label>Cargo do representante</label><input type="text" id="${id}-emp-cargo" placeholder="Ex: Gerente, Administrador"></div>
-        <div class="field"><label>NIF do representante</label><input type="text" id="${id}-emp-rep-nif"></div>
       </div>
+      <div id="${id}-reps" style="margin-top:.6rem"></div>
+      <button class="add-btn" type="button" onclick="addRep('${id}')">+ Adicionar outro representante/gerente</button>
     </div>`;
   document.getElementById(`${tipo}-container`).appendChild(div);
+  addRep(id);
   updateProgress();
+}
+
+// ─── REPRESENTANTES/GERENTES MÚLTIPLOS (empresa) ─────────────────────────────
+const repCnt={};
+function addRep(id){
+  repCnt[id]=(repCnt[id]||0)+1;const n=repCnt[id];
+  const div=document.createElement('div');
+  div.className='rep-block';div.id=`${id}-rep-${n}`;
+  div.style.cssText='border:1px solid var(--gold-border);border-radius:7px;padding:.7rem;margin-bottom:.5rem';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold)">Representante / Gerente ${n}</span>
+      ${n>1?`<button class="remove-btn" type="button" onclick="document.getElementById('${id}-rep-${n}').remove();updateProgress()">×</button>`:''}
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full"><label>Nome <span class="req">*</span></label><input type="text" id="${id}-rep-${n}-nome" style="text-transform:uppercase"></div>
+      <div class="field"><label>Cargo</label><input type="text" id="${id}-rep-${n}-cargo" placeholder="Ex: Gerente, Administrador"></div>
+      <div class="field"><label>NIF</label><input type="text" id="${id}-rep-${n}-nif"></div>
+    </div>`;
+  document.getElementById(`${id}-reps`).appendChild(div);
+}
+
+// ─── IBANS MÚLTIPLOS ──────────────────────────────────────────────────────────
+const ibanCnt={c:0,v:0};
+function addIban(side){
+  ibanCnt[side]++;const n=ibanCnt[side];
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:flex;gap:.4rem;margin-bottom:.4rem;align-items:center';
+  wrap.innerHTML=`<input type="text" id="preco-iban-${side}-${n}" placeholder="PT50..." style="flex:1">${n>1?`<button class="remove-btn" type="button" onclick="this.parentElement.remove();updateProgress()">×</button>`:''}`;
+  document.getElementById(`ibans-${side}`).appendChild(wrap);
 }
 
 function setPessoaTipo(id,tipo,btn){
@@ -656,13 +688,39 @@ function submeter(){
   linhas.push(`Data de submissão: ${new Date().toLocaleString('pt-PT')}\n`);
   linhas.push('\n--- PARTE VENDEDORA ---');
   for(let i=1;i<=vcnt;i++){
-    const n=d[`vendedores-${i}-nome`]||d[`vendedores-${i}-emp-nome`]||'';
-    if(n)linhas.push(`Vendedor ${i}: ${n} | NIF: ${d[`vendedores-${i}-nif`]||d[`vendedores-${i}-emp-nif`]||''} | CC: ${d[`vendedores-${i}-cc`]||''} | Nat.: ${d[`vendedores-${i}-natal`]||''} | EC: ${d[`vendedores-${i}-ec`]||''} | Morada: ${d[`vendedores-${i}-morada`]||''}`);
+    const isEmp=document.getElementById(`vendedores-${i}-empresa`)&&document.getElementById(`vendedores-${i}-empresa`).style.display!=='none';
+    if(isEmp){
+      const en=d[`vendedores-${i}-emp-nome`]||'';
+      if(en){
+        linhas.push(`Vendedor ${i} (EMPRESA): ${en} | NIF: ${d[`vendedores-${i}-emp-nif`]||''} | Sede: ${d[`vendedores-${i}-emp-sede`]||''}`);
+        const max=repCnt[`vendedores-${i}`]||0;
+        for(let j=1;j<=max;j++){
+          const rn=d[`vendedores-${i}-rep-${j}-nome`];
+          if(rn)linhas.push(`   Representante ${j}: ${rn} | Cargo: ${d[`vendedores-${i}-rep-${j}-cargo`]||''} | NIF: ${d[`vendedores-${i}-rep-${j}-nif`]||''}`);
+        }
+      }
+    }else{
+      const n=d[`vendedores-${i}-nome`]||'';
+      if(n)linhas.push(`Vendedor ${i}: ${n} | NIF: ${d[`vendedores-${i}-nif`]||''} | CC: ${d[`vendedores-${i}-cc`]||''} | Nat.: ${d[`vendedores-${i}-natal`]||''} | EC: ${d[`vendedores-${i}-ec`]||''} | Morada: ${d[`vendedores-${i}-morada`]||''}`);
+    }
   }
   linhas.push('\n--- PARTE COMPRADORA ---');
   for(let i=1;i<=ccnt;i++){
-    const n=d[`compradores-${i}-nome`]||d[`compradores-${i}-emp-nome`]||'';
-    if(n)linhas.push(`Comprador ${i}: ${n} | NIF: ${d[`compradores-${i}-nif`]||d[`compradores-${i}-emp-nif`]||''} | CC: ${d[`compradores-${i}-cc`]||''} | Nat.: ${d[`compradores-${i}-natal`]||''} | EC: ${d[`compradores-${i}-ec`]||''} | Morada: ${d[`compradores-${i}-morada`]||''}`);
+    const isEmp=document.getElementById(`compradores-${i}-empresa`)&&document.getElementById(`compradores-${i}-empresa`).style.display!=='none';
+    if(isEmp){
+      const en=d[`compradores-${i}-emp-nome`]||'';
+      if(en){
+        linhas.push(`Comprador ${i} (EMPRESA): ${en} | NIF: ${d[`compradores-${i}-emp-nif`]||''} | Sede: ${d[`compradores-${i}-emp-sede`]||''}`);
+        const max=repCnt[`compradores-${i}`]||0;
+        for(let j=1;j<=max;j++){
+          const rn=d[`compradores-${i}-rep-${j}-nome`];
+          if(rn)linhas.push(`   Representante ${j}: ${rn} | Cargo: ${d[`compradores-${i}-rep-${j}-cargo`]||''} | NIF: ${d[`compradores-${i}-rep-${j}-nif`]||''}`);
+        }
+      }
+    }else{
+      const n=d[`compradores-${i}-nome`]||'';
+      if(n)linhas.push(`Comprador ${i}: ${n} | NIF: ${d[`compradores-${i}-nif`]||''} | CC: ${d[`compradores-${i}-cc`]||''} | Nat.: ${d[`compradores-${i}-natal`]||''} | EC: ${d[`compradores-${i}-ec`]||''} | Morada: ${d[`compradores-${i}-morada`]||''}`);
+    }
   }
   linhas.push('\n--- IMÓVEL ---');
   linhas.push(`Morada: ${d['imovel-morada']||''}`);
@@ -677,7 +735,9 @@ function submeter(){
   if(temSinal==='sim'){
     linhas.push(`Há sinal: SIM`);
     linhas.push(`Sinal: ${d['preco-sinal']||''} em ${d['preco-sinal-data']||''} por ${d['preco-sinal-forma']||''}`);
-    linhas.push(`IBAN comprador: ${d['preco-iban-c']||''} | IBAN vendedor: ${d['preco-iban-v']||''}`);
+    const ibansC=[];for(let j=1;j<=ibanCnt.c;j++){const iv=d[`preco-iban-c-${j}`];if(iv)ibansC.push(iv);}
+    const ibansV=[];for(let j=1;j<=ibanCnt.v;j++){const iv=d[`preco-iban-v-${j}`];if(iv)ibansV.push(iv);}
+    linhas.push(`IBAN(s) comprador: ${ibansC.join(' ; ')||''} | IBAN(s) vendedor: ${ibansV.join(' ; ')||''}`);
     linhas.push(`Reforço: ${d['preco-reforco']||''} em ${d['preco-reforco-data']||''}`);
   } else if(temSinal==='nao'){
     linhas.push(`Há sinal: NÃO — aplicar cláusula penal`);
@@ -812,6 +872,8 @@ function showToast(msg,tipo=''){const t=document.getElementById('toast');t.textC
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload=()=>{
   addPessoa('vendedores');
+  addIban('c');
+  addIban('v');
   addPessoa('compradores');
   addMediadora('PRIME TEAM — SOCIEDADE DE MEDIAÇÃO IMOBILIÁRIA, UNIPESSOAL, LDA','13123');
   updateProgress();
