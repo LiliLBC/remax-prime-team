@@ -120,7 +120,6 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
   .field-hint{display:none}
   #cert-extra{display:block!important}
   #med-dados{display:block!important}
-  #onus-desc{display:block!important}
   /* Cabeçalho de impressão */
   .print-header{display:block!important;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:6px}
   .print-header h1{font-size:13px;font-weight:bold}
@@ -186,6 +185,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
           <option value="">Selecionar...</option>
           <option>REMAX Prime Team — Beja</option>
           <option>REMAX Prime Team — Montemor-o-Novo</option>
+          <option>REMAX Prime Team — Grândola</option>
         </select>
       </div>
       <div class="field">
@@ -223,57 +223,10 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
   <div class="section">
     <div class="section-header">
       <div class="section-num"><span>3</span></div>
-      <div><div class="section-title">Identificação do Imóvel</div><div class="section-sub">Dados da certidão permanente e caderneta predial</div></div>
+      <div><div class="section-title">Identificação do(s) Imóvel(eis)</div><div class="section-sub">Dados da certidão permanente e caderneta predial</div></div>
     </div>
-    <div class="field-grid">
-      <div class="field field-full">
-        <label>Morada completa do imóvel <span class="req">*</span></label>
-        <input type="text" id="imovel-morada" placeholder="Ex: Rua das Flores, n.º 5, 1.º Direito, 7000-000 Évora">
-      </div>
-      <div class="field">
-        <label>Tipo de prédio <span class="req">*</span></label>
-        <select id="imovel-tipo">
-          <option value="">Selecionar...</option>
-          <option>Fração autónoma</option>
-          <option>Prédio urbano</option>
-          <option>Prédio rústico</option>
-          <option>Prédio misto</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Conservatória do Registo Predial <span class="req">*</span></label>
-        <input type="text" id="imovel-conservatoria" placeholder="Ex: Évora">
-      </div>
-      <div class="field">
-        <label>Nº de descrição na conservatória <span class="req">*</span></label>
-        <input type="text" id="imovel-descricao" placeholder="Ex: 1234">
-      </div>
-      <div class="field">
-        <label>Freguesia (na conservatória) <span class="req">*</span></label>
-        <input type="text" id="imovel-freguesia" placeholder="Ex: Évora (Sé e São Pedro)">
-      </div>
-      <div class="field field-full">
-        <label>Artigo(s) matricial(is) urbano(s)</label>
-        <input type="text" id="imovel-matriz-u" placeholder="Ex: Artigo 1234 da freguesia de Évora (VPT: 85.000 €, ano 2024)">
-        <div class="field-hint">Se houver mais do que um, separe por vírgula ou nova linha</div>
-      </div>
-      <div class="field field-full">
-        <label>Artigo(s) matricial(is) rústico(s) (se aplicável)</label>
-        <input type="text" id="imovel-matriz-r" placeholder="Ex: Artigo 511, Secção S, da freguesia de Nossa Senhora da Vila (VPT: 106,21 €, ano 1989)">
-      </div>
-      <div class="field field-full">
-        <label>Ónus ou encargos sobre o imóvel</label>
-        <select id="imovel-onus" onchange="document.getElementById('onus-desc').style.display=this.value==='sim'?'block':'none'">
-          <option value="nao">Não existem ónus ou encargos</option>
-          <option value="sim">Sim, existem</option>
-          <option value="desconhece">Desconheço</option>
-        </select>
-      </div>
-      <div class="field field-full" id="onus-desc" style="display:none">
-        <label>Descrição dos ónus</label>
-        <textarea id="imovel-onus-desc" rows="2" placeholder="Ex: Hipoteca a favor do banco X..."></textarea>
-      </div>
-    </div>
+    <div id="imoveis-container"></div>
+    <button class="add-btn" onclick="addImovel()" type="button">+ Adicionar outro prédio</button>
   </div>
 
   <!-- ④ PREÇO -->
@@ -299,42 +252,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
       </div>
 
       <!-- BLOCO SINAL -->
-      <div id="bloco-sinal" class="field-grid field-grid-2" style="display:none;grid-column:1/-1;gap:1rem">
-        <div class="field field-full">
-          <label>Sinal / entrada inicial (€)</label>
-          <input type="text" id="preco-sinal" placeholder="Ex: 26.500,00">
-        </div>
-        <div class="field">
-          <label>Data do pagamento do sinal</label>
-          <input type="date" id="preco-sinal-data">
-        </div>
-        <div class="field">
-          <label>Forma de pagamento do sinal</label>
-          <select id="preco-sinal-forma">
-            <option value="">— Selecionar —</option>
-            <option>Transferência bancária</option>
-            <option>Cheque</option>
-            <option>Numerário</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>IBAN(s) do comprador (para sinal por transferência)</label>
-          <div id="ibans-c"></div>
-          <button class="add-btn" type="button" onclick="addIban('c')">+ Adicionar outro IBAN do comprador</button>
-        </div>
-        <div class="field">
-          <label>IBAN(s) do vendedor (para sinal por transferência)</label>
-          <div id="ibans-v"></div>
-          <button class="add-btn" type="button" onclick="addIban('v')">+ Adicionar outro IBAN do vendedor</button>
-        </div>
-        <div class="field field-full">
-          <label>Reforço de sinal (€) — se houver</label>
-          <input type="text" id="preco-reforco" placeholder="Ex: 50.000,00 — deixe em branco se não houver">
-        </div>
-        <div class="field">
-          <label>Data do reforço</label>
-          <input type="date" id="preco-reforco-data">
-        </div>
+      <div id="bloco-sinal" style="display:none;grid-column:1/-1">
+        <div id="pagamentos-container"></div>
+        <button class="add-btn" type="button" onclick="addPagamento()">+ Adicionar reforço de sinal</button>
       </div>
 
       <!-- BLOCO CLÁUSULA PENAL (sem sinal) -->
@@ -378,7 +298,16 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
     <div class="field-grid field-grid-2">
       <div class="field field-full">
         <label>Data limite para outorga da escritura <span class="req">*</span></label>
-        <input type="date" id="prazo-data">
+        <input type="date" id="prazo-data" onchange="atualizarProrrog()">
+      </div>
+      <div class="field field-full">
+        <label>Prazo prorrogável por 30 dias? <span class="req">*</span></label>
+        <div class="person-type">
+          <button class="type-btn active" type="button" onclick="setProrrog('nao',this)">Não prorrogável</button>
+          <button class="type-btn" type="button" onclick="setProrrog('sim',this)">Prorrogável por 30 dias</button>
+        </div>
+        <input type="text" id="prazo-prorrogavel" value="Não prorrogável" readonly style="display:none">
+        <div class="field-hint" id="prazo-hint">O prazo é improrrogável, salvo acordo escrito das partes.</div>
       </div>
     </div>
   </div>
@@ -597,13 +526,90 @@ function addRep(id){
 }
 
 // ─── IBANS MÚLTIPLOS ──────────────────────────────────────────────────────────
-const ibanCnt={c:0,v:0};
-function addIban(side){
-  ibanCnt[side]++;const n=ibanCnt[side];
+const ibanCnt={};
+function addIban(pid,side){
+  const k=`${pid}-${side}`;
+  ibanCnt[k]=(ibanCnt[k]||0)+1;const n=ibanCnt[k];
   const wrap=document.createElement('div');
   wrap.style.cssText='display:flex;gap:.4rem;margin-bottom:.4rem;align-items:center';
-  wrap.innerHTML=`<input type="text" id="preco-iban-${side}-${n}" placeholder="PT50..." style="flex:1">${n>1?`<button class="remove-btn" type="button" onclick="this.parentElement.remove();updateProgress()">×</button>`:''}`;
-  document.getElementById(`ibans-${side}`).appendChild(wrap);
+  wrap.innerHTML=`<input type="text" id="${pid}-iban-${side}-${n}" placeholder="PT50..." style="flex:1">${n>1?`<button class="remove-btn" type="button" onclick="this.parentElement.remove();updateProgress()">×</button>`:''}`;
+  document.getElementById(`${pid}-ibans-${side}`).appendChild(wrap);
+  updateProgress();
+}
+
+// ─── PAGAMENTOS: SINAL + REFORÇOS ─────────────────────────────────────────────
+let pcnt=0;
+function addPagamento(){
+  const idx=++pcnt;const id=`pag-${idx}`;const primeiro=idx===1;
+  const titulo=primeiro?'Sinal / entrada inicial':`Reforço de sinal ${idx-1}`;
+  const div=document.createElement('div');
+  div.className='person-block';div.id=`${id}-block`;
+  div.innerHTML=`
+    <div class="person-header">
+      <span class="person-label">${titulo}</span>
+      ${!primeiro?`<button class="remove-btn" type="button" onclick="document.getElementById('${id}-block').remove();updateProgress()">×</button>`:''}
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field">
+        <label>Valor (€) ${primeiro?'<span class="req">*</span>':''}</label>
+        <input type="text" id="${id}-valor" placeholder="Ex: 26.500,00" oninput="updateProgress()">
+      </div>
+      <div class="field">
+        <label>Data do pagamento</label>
+        <input type="date" id="${id}-data">
+      </div>
+      <div class="field field-full">
+        <label>Forma de pagamento</label>
+        <select id="${id}-forma" onchange="onFormaPag('${id}')">
+          <option value="">— Selecionar —</option>
+          <option>Transferência bancária</option>
+          <option>Cheque</option>
+          <option>Numerário</option>
+        </select>
+      </div>
+    </div>
+    <div id="${id}-contas" style="display:none;margin-top:.75rem">
+      ${!primeiro?`
+      <div class="field-grid">
+        <div class="field field-full">
+          <label>Contas a utilizar</label>
+          <select id="${id}-contas-modo" onchange="onContasModo('${id}')">
+            <option value="mesmas">As mesmas contas do sinal inicial</option>
+            <option value="outras">Contas diferentes</option>
+          </select>
+        </div>
+      </div>`:''}
+      <div id="${id}-ibans-wrap" class="field-grid field-grid-2" style="margin-top:.6rem;gap:1rem">
+        <div class="field">
+          <label>IBAN(s) do comprador</label>
+          <div id="${id}-ibans-c"></div>
+          <button class="add-btn" type="button" onclick="addIban('${id}','c')">+ Adicionar outro IBAN do comprador</button>
+        </div>
+        <div class="field">
+          <label>IBAN(s) do vendedor</label>
+          <div id="${id}-ibans-v"></div>
+          <button class="add-btn" type="button" onclick="addIban('${id}','v')">+ Adicionar outro IBAN do vendedor</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('pagamentos-container').appendChild(div);
+  addIban(id,'c');
+  addIban(id,'v');
+  if(!primeiro)onContasModo(id);
+  updateProgress();
+}
+
+function onFormaPag(id){
+  const v=document.getElementById(`${id}-forma`).value;
+  document.getElementById(`${id}-contas`).style.display=v==='Transferência bancária'?'block':'none';
+  updateProgress();
+}
+
+function onContasModo(id){
+  const sel=document.getElementById(`${id}-contas-modo`);
+  if(!sel)return;
+  document.getElementById(`${id}-ibans-wrap`).style.display=sel.value==='outras'?'grid':'none';
+  updateProgress();
 }
 
 function setPessoaTipo(id,tipo,btn){
@@ -634,11 +640,239 @@ function addMediadora(nome='',ami=''){
   document.getElementById('med-container').appendChild(div);
 }
 
+// ─── IMÓVEIS MÚLTIPLOS ────────────────────────────────────────────────────────
+let icnt=0;
+const artCnt={};
+
+function addImovel(){
+  const idx=++icnt;const id=`im-${idx}`;
+  const div=document.createElement('div');
+  div.className='person-block';div.id=id;
+  div.innerHTML=`
+    <div class="person-header">
+      <span class="person-label">Prédio ${idx}</span>
+      ${idx>1?`<button class="remove-btn" type="button" onclick="document.getElementById('${id}').remove();updateProgress()">×</button>`:''}
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field field-full">
+        <label>Morada completa do imóvel <span class="req">*</span></label>
+        <input type="text" id="${id}-morada" placeholder="Ex: Rua das Flores, n.º 5, 1.º Direito, 7000-000 Évora" oninput="updateProgress()">
+      </div>
+      <div class="field">
+        <label>Tipo de prédio <span class="req">*</span></label>
+        <select id="${id}-tipo" onchange="onTipoPredio('${id}')">
+          <option value="">Selecionar...</option>
+          <option>Fração autónoma</option>
+          <option>Prédio urbano</option>
+          <option>Prédio rústico</option>
+          <option>Prédio misto</option>
+        </select>
+      </div>
+      <div class="field" id="${id}-campo-fracao" style="display:none">
+        <label>Letra da fração autónoma <span class="req">*</span></label>
+        <input type="text" id="${id}-fracao" placeholder="Ex: F" style="text-transform:uppercase" oninput="updateProgress()">
+        <div class="field-hint">Designação conforme a certidão permanente. Se forem várias, separe por vírgula (ex: F, G)</div>
+      </div>
+      <div class="field">
+        <label>Conservatória do Registo Predial <span class="req">*</span></label>
+        <input type="text" id="${id}-conservatoria" placeholder="Ex: Évora">
+      </div>
+      <div class="field">
+        <label>Nº de descrição na conservatória <span class="req">*</span></label>
+        <input type="text" id="${id}-descricao" placeholder="Ex: 1234">
+      </div>
+      <div class="field">
+        <label>Freguesia (na conservatória) <span class="req">*</span></label>
+        <input type="text" id="${id}-freguesia" placeholder="Ex: Évora (Sé e São Pedro)">
+      </div>
+    </div>
+    <div style="margin-top:.9rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold);margin-bottom:.5rem">Artigos matriciais</div>
+      <div id="${id}-artigos"></div>
+      <button class="add-btn" type="button" onclick="addArtigo('${id}')">+ Adicionar outro artigo matricial</button>
+    </div>
+    <div style="margin-top:.9rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold);margin-bottom:.5rem">Licença de utilização</div>
+      <div class="field-grid">
+        <div class="field field-full">
+          <label>Situação do imóvel quanto à licença de utilização <span class="req">*</span></label>
+          <select id="${id}-lic" onchange="onLicenca('${id}')">
+            <option value="">Selecionar...</option>
+            <option value="tem">Tem licença de utilização — documento original emitido pela Câmara Municipal</option>
+            <option value="nao">Não tem licença — falta o documento</option>
+            <option value="isencao">Tem isenção de licença — documento original emitido pela Câmara Municipal</option>
+          </select>
+          <div class="field-hint" id="${id}-lic-hint"></div>
+        </div>
+      </div>
+      <div class="field-grid field-grid-2" id="${id}-lic-wrap" style="display:none;margin-top:.6rem;gap:1rem">
+        <div class="field">
+          <label id="${id}-lic-num-label">N.º do documento <span class="req">*</span></label>
+          <input type="text" id="${id}-lic-num" placeholder="Ex: 45/2019" oninput="updateProgress()">
+        </div>
+        <div class="field">
+          <label>Data de emissão <span class="req">*</span></label>
+          <input type="date" id="${id}-lic-data">
+        </div>
+        <div class="field field-full">
+          <label>Câmara Municipal emitente</label>
+          <input type="text" id="${id}-lic-cm" placeholder="Ex: Câmara Municipal de Évora">
+        </div>
+      </div>
+    </div>
+    <div class="field-grid" style="margin-top:.9rem">
+      <div class="field field-full">
+        <label>Ónus ou encargos sobre o imóvel</label>
+        <select id="${id}-onus" onchange="onOnus('${id}')">
+          <option value="nao">Não existem ónus ou encargos</option>
+          <option value="sim">Sim, existem</option>
+          <option value="desconhece">Desconheço</option>
+        </select>
+      </div>
+    </div>
+    <div id="${id}-onus-wrap" style="display:none;margin-top:.75rem">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold);margin-bottom:.5rem">Ónus e encargos inscritos</div>
+      <div id="${id}-onus-list"></div>
+      <button class="add-btn" type="button" onclick="addOnus('${id}')">+ Adicionar outro ónus</button>
+    </div>`;
+  document.getElementById('imoveis-container').appendChild(div);
+  addArtigo(id);
+  updateProgress();
+}
+
+function onTipoPredio(id){
+  const v=document.getElementById(`${id}-tipo`).value;
+  const c=document.getElementById(`${id}-campo-fracao`);
+  const ehFracao=v==='Fração autónoma';
+  c.style.display=ehFracao?'':'none';
+  if(!ehFracao)document.getElementById(`${id}-fracao`).value='';
+  updateProgress();
+}
+
+function onLicenca(id){
+  const v=document.getElementById(`${id}-lic`).value;
+  const wrap=document.getElementById(`${id}-lic-wrap`);
+  const hint=document.getElementById(`${id}-lic-hint`);
+  const lbl=document.getElementById(`${id}-lic-num-label`);
+  wrap.style.display=(v==='tem'||v==='isencao')?'grid':'none';
+  if(v==='tem'){
+    lbl.innerHTML='N.º da licença / alvará de utilização <span class="req">*</span>';
+    hint.textContent='Juntar o documento original emitido pela Câmara Municipal.';
+  }else if(v==='isencao'){
+    lbl.innerHTML='N.º da certidão de isenção <span class="req">*</span>';
+    hint.textContent='Juntar a certidão de isenção original emitida pela Câmara Municipal.';
+  }else if(v==='nao'){
+    document.getElementById(`${id}-lic-num`).value='';
+    document.getElementById(`${id}-lic-data`).value='';
+    document.getElementById(`${id}-lic-cm`).value='';
+    hint.textContent='Falta o documento — deve ser obtido junto da Câmara Municipal antes da outorga da escritura.';
+  }else{
+    hint.textContent='';
+  }
+  updateProgress();
+}
+
+function onOnus(id){
+  const v=document.getElementById(`${id}-onus`).value;
+  const wrap=document.getElementById(`${id}-onus-wrap`);
+  wrap.style.display=v==='sim'?'block':'none';
+  if(v==='sim'&&!onusCnt[id])addOnus(id);
+  updateProgress();
+}
+
+const onusCnt={};
+function addOnus(id){
+  onusCnt[id]=(onusCnt[id]||0)+1;const n=onusCnt[id];const o=`${id}-onus-${n}`;
+  const div=document.createElement('div');
+  div.id=`${o}-block`;
+  div.style.cssText='border:1px solid var(--gold-border);border-radius:7px;padding:.7rem;margin-bottom:.5rem';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold)">Ónus ${n}</span>
+      ${n>1?`<button class="remove-btn" type="button" onclick="document.getElementById('${o}-block').remove();updateProgress()">×</button>`:''}
+    </div>
+    <div class="field-grid">
+      <div class="field field-full">
+        <textarea id="${o}" rows="2" placeholder="Ex: Hipoteca voluntária — Ap. 1234 de 2020/05/12 — a favor de Caixa Geral de Depósitos, S.A."></textarea>
+        <div class="field-hint">Indique a natureza do ónus, a apresentação (Ap.) e o beneficiário, conforme a certidão permanente</div>
+      </div>
+    </div>`;
+  document.getElementById(`${id}-onus-list`).appendChild(div);
+}
+
+function addArtigo(id){
+  artCnt[id]=(artCnt[id]||0)+1;const n=artCnt[id];const a=`${id}-art-${n}`;
+  const div=document.createElement('div');
+  div.id=a;
+  div.style.cssText='border:1px solid var(--gold-border);border-radius:7px;padding:.7rem;margin-bottom:.5rem';
+  div.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gold)">Artigo ${n}</span>
+      ${n>1?`<button class="remove-btn" type="button" onclick="document.getElementById('${a}').remove();updateProgress()">×</button>`:''}
+    </div>
+    <div class="field-grid field-grid-2">
+      <div class="field">
+        <label>Natureza <span class="req">*</span></label>
+        <select id="${a}-nat" onchange="onArtNat('${a}')">
+          <option value="Urbano">Urbano</option>
+          <option value="Rústico">Rústico</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Artigo n.º <span class="req">*</span></label>
+        <input type="text" id="${a}-num" placeholder="Ex: 1234" oninput="updateProgress()">
+      </div>
+      <div class="field" id="${a}-secwrap" style="display:none">
+        <label>Secção</label>
+        <input type="text" id="${a}-sec" placeholder="Ex: S" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Freguesia (matriz)</label>
+        <input type="text" id="${a}-freg" placeholder="Ex: Évora (Sé e São Pedro)">
+      </div>
+      <div class="field">
+        <label>VPT (€) <span class="req">*</span></label>
+        <input type="text" id="${a}-vpt" placeholder="Ex: 85.000,00" oninput="updateProgress()">
+      </div>
+      <div class="field">
+        <label>Ano do VPT</label>
+        <input type="text" id="${a}-ano" placeholder="Ex: 2024">
+      </div>
+    </div>`;
+  document.getElementById(`${id}-artigos`).appendChild(div);
+  updateProgress();
+}
+
+function onArtNat(a){
+  const v=document.getElementById(`${a}-nat`).value;
+  document.getElementById(`${a}-secwrap`).style.display=v==='Rústico'?'':'none';
+  if(v!=='Rústico')document.getElementById(`${a}-sec`).value='';
+  updateProgress();
+}
+
+// ─── PRORROGAÇÃO DO PRAZO ─────────────────────────────────────────────────────
+function setProrrog(v,btn){
+  btn.parentElement.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('prazo-prorrogavel').value=v==='sim'?'Prorrogável por 30 dias':'Não prorrogável';
+  atualizarProrrog();
+}
+
+function atualizarProrrog(){
+  const prorr=document.getElementById('prazo-prorrogavel').value.startsWith('Prorrog');
+  const data=document.getElementById('prazo-data').value;
+  const hint=document.getElementById('prazo-hint');
+  if(!prorr){hint.textContent='O prazo é improrrogável, salvo acordo escrito das partes.';return;}
+  if(!data){hint.textContent='Prorrogável por 30 dias sobre a data limite.';return;}
+  const dt=new Date(data+'T00:00:00');dt.setDate(dt.getDate()+30);
+  hint.textContent=`Prorrogável por 30 dias — limite máximo: ${dt.toLocaleDateString('pt-PT')}`;
+}
+
 // ─── TOGGLE SINAL / CLÁUSULA PENAL ────────────────────────────────────────────
 function toggleSinal(v){
   const blocoSinal=document.getElementById('bloco-sinal');
   const blocoCP=document.getElementById('bloco-clausula-penal');
-  if(v==='sim'){blocoSinal.style.display='grid';blocoCP.style.display='none';}
+  if(v==='sim'){blocoSinal.style.display='block';blocoCP.style.display='none';if(pcnt===0)addPagamento();}
   else if(v==='nao'){blocoSinal.style.display='none';blocoCP.style.display='block';}
   else{blocoSinal.style.display='none';blocoCP.style.display='none';}
   updateProgress();
@@ -650,8 +884,8 @@ function toggleCPModo(v){
 
 // ─── PROGRESSO ────────────────────────────────────────────────────────────────
 function updateProgress(){
-  const campos=document.querySelectorAll('input[type=text],input[type=email],input[type=date]');
-  const total=campos.length;const preench=[...campos].filter(i=>i.value.trim()).length;
+  const campos=[...document.querySelectorAll('input[type=text],input[type=email],input[type=date]')].filter(i=>i.offsetParent!==null);
+  const total=campos.length;const preench=campos.filter(i=>i.value.trim()).length;
   const pct=total?Math.round(preench/total*100):0;
   document.getElementById('progress').style.width=pct+'%';
   document.getElementById('sticky-progresso').textContent=`${pct}% preenchido`;
@@ -722,23 +956,68 @@ function submeter(){
       if(n)linhas.push(`Comprador ${i}: ${n} | NIF: ${d[`compradores-${i}-nif`]||''} | CC: ${d[`compradores-${i}-cc`]||''} | Nat.: ${d[`compradores-${i}-natal`]||''} | EC: ${d[`compradores-${i}-ec`]||''} | Morada: ${d[`compradores-${i}-morada`]||''}`);
     }
   }
-  linhas.push('\n--- IMÓVEL ---');
-  linhas.push(`Morada: ${d['imovel-morada']||''}`);
-  linhas.push(`Tipo: ${d['imovel-tipo']||''}`);
-  linhas.push(`Conservatória: ${d['imovel-conservatoria']||''} | Nº: ${d['imovel-descricao']||''} | Freguesia: ${d['imovel-freguesia']||''}`);
-  linhas.push(`Matriz urbana: ${d['imovel-matriz-u']||''}`);
-  linhas.push(`Matriz rústica: ${d['imovel-matriz-r']||''}`);
-  linhas.push(`Ónus: ${d['imovel-onus']||''} ${d['imovel-onus-desc']?'— '+d['imovel-onus-desc']:''}`);
+  linhas.push('\n--- IMÓVEL(EIS) ---');
+  for(let i=1;i<=icnt;i++){
+    const id=`im-${i}`;
+    if(!document.getElementById(id))continue;
+    const tipo=d[`${id}-tipo`]||'';
+    linhas.push(`Prédio ${i}:`);
+    linhas.push(`   Morada: ${d[`${id}-morada`]||''}`);
+    linhas.push(`   Tipo: ${tipo}${tipo==='Fração autónoma'?` — Fração «${(d[`${id}-fracao`]||'').toUpperCase()}»`:''}`);
+    linhas.push(`   Conservatória: ${d[`${id}-conservatoria`]||''} | Nº: ${d[`${id}-descricao`]||''} | Freguesia: ${d[`${id}-freguesia`]||''}`);
+    const max=artCnt[id]||0;
+    for(let j=1;j<=max;j++){
+      const a=`${id}-art-${j}`;
+      if(!document.getElementById(a))continue;
+      const num=d[`${a}-num`]||'';
+      if(!num)continue;
+      const sec=d[`${a}-sec`]?`, Secção ${d[`${a}-sec`]}`:'';
+      const freg=d[`${a}-freg`]?` da freguesia de ${d[`${a}-freg`]}`:'';
+      const ano=d[`${a}-ano`]?` (ano ${d[`${a}-ano`]})`:'';
+      linhas.push(`   Artigo ${j}: ${d[`${a}-nat`]||''} n.º ${num}${sec}${freg} | VPT: ${d[`${a}-vpt`]||''} €${ano}`);
+    }
+    const vLic=d[`${id}-lic`]||'';
+    if(vLic==='tem'){
+      linhas.push(`   Licença de utilização: SIM — n.º ${d[`${id}-lic-num`]||''} de ${d[`${id}-lic-data`]||''}${d[`${id}-lic-cm`]?' — '+d[`${id}-lic-cm`]:''} (original da Câmara Municipal)`);
+    }else if(vLic==='isencao'){
+      linhas.push(`   Licença de utilização: ISENTO — certidão de isenção n.º ${d[`${id}-lic-num`]||''} de ${d[`${id}-lic-data`]||''}${d[`${id}-lic-cm`]?' — '+d[`${id}-lic-cm`]:''} (original da Câmara Municipal)`);
+    }else if(vLic==='nao'){
+      linhas.push(`   Licença de utilização: NÃO TEM — falta o documento`);
+    }else{
+      linhas.push(`   Licença de utilização: (não indicada)`);
+    }
+    const vOnus=d[`${id}-onus`]||'';
+    linhas.push(`   Ónus: ${vOnus==='sim'?'SIM':vOnus==='nao'?'Não existem':'Desconhece'}`);
+    if(vOnus==='sim'){
+      const maxo=onusCnt[id]||0;
+      for(let k=1;k<=maxo;k++){
+        const txt=d[`${id}-onus-${k}`]||'';
+        if(txt)linhas.push(`      Ónus ${k}: ${txt}`);
+      }
+    }
+  }
   linhas.push('\n--- PREÇO ---');
   linhas.push(`Preço total: ${d['preco-total']||''}`);
   const temSinal=d['tem-sinal']||'';
   if(temSinal==='sim'){
     linhas.push(`Há sinal: SIM`);
-    linhas.push(`Sinal: ${d['preco-sinal']||''} em ${d['preco-sinal-data']||''} por ${d['preco-sinal-forma']||''}`);
-    const ibansC=[];for(let j=1;j<=ibanCnt.c;j++){const iv=d[`preco-iban-c-${j}`];if(iv)ibansC.push(iv);}
-    const ibansV=[];for(let j=1;j<=ibanCnt.v;j++){const iv=d[`preco-iban-v-${j}`];if(iv)ibansV.push(iv);}
-    linhas.push(`IBAN(s) comprador: ${ibansC.join(' ; ')||''} | IBAN(s) vendedor: ${ibansV.join(' ; ')||''}`);
-    linhas.push(`Reforço: ${d['preco-reforco']||''} em ${d['preco-reforco-data']||''}`);
+    for(let i=1;i<=pcnt;i++){
+      const id=`pag-${i}`;
+      if(!document.getElementById(`${id}-block`))continue;
+      const rot=i===1?'Sinal':`Reforço ${i-1}`;
+      const forma=d[`${id}-forma`]||'';
+      linhas.push(`${rot}: ${d[`${id}-valor`]||''} € em ${d[`${id}-data`]||''} por ${forma||'(forma não indicada)'}`);
+      if(forma==='Transferência bancária'){
+        const modo=d[`${id}-contas-modo`]||'';
+        if(i>1&&modo==='mesmas'){
+          linhas.push(`   Contas: as mesmas do sinal inicial`);
+        }else{
+          const ic=[];for(let j=1;j<=(ibanCnt[`${id}-c`]||0);j++){const iv=d[`${id}-iban-c-${j}`];if(iv)ic.push(iv);}
+          const iv2=[];for(let j=1;j<=(ibanCnt[`${id}-v`]||0);j++){const x=d[`${id}-iban-v-${j}`];if(x)iv2.push(x);}
+          linhas.push(`   IBAN(s) comprador: ${ic.join(' ; ')||'—'} | IBAN(s) vendedor: ${iv2.join(' ; ')||'—'}`);
+        }
+      }
+    }
   } else if(temSinal==='nao'){
     linhas.push(`Há sinal: NÃO — aplicar cláusula penal`);
     const modo=d['cp-modo']||'';
@@ -750,7 +1029,7 @@ function submeter(){
     linhas.push(`Há sinal: (não indicado)`);
   }
   linhas.push('\n--- PRAZO ---');
-  linhas.push(`Data limite escritura: ${d['prazo-data']||''} | Tribunal competente: Comarca da situação do prédio`);
+  linhas.push(`Data limite escritura: ${d['prazo-data']||''} | ${d['prazo-prorrogavel']||''} | Tribunal competente: Comarca da situação do prédio`);
   linhas.push('\n--- CERT. ENERGÉTICO ---');
   linhas.push(`Tipo: ${d['cert-tipo']||''} | Nº: ${d['cert-num']||''} | Válido: ${d['cert-data']||''}`);
   linhas.push('\n--- MEDIAÇÃO ---');
@@ -872,9 +1151,8 @@ function showToast(msg,tipo=''){const t=document.getElementById('toast');t.textC
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload=()=>{
   addPessoa('vendedores');
-  addIban('c');
-  addIban('v');
   addPessoa('compradores');
+  addImovel();
   addMediadora('PRIME TEAM — SOCIEDADE DE MEDIAÇÃO IMOBILIÁRIA, UNIPESSOAL, LDA','13123');
   updateProgress();
 };
