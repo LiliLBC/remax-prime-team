@@ -227,6 +227,21 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--cream);color:var(--
     </div>
     <div id="imoveis-container"></div>
     <button class="add-btn" onclick="addImovel()" type="button">+ Adicionar outro prédio</button>
+    <div class="field-grid" style="margin-top:1.25rem">
+      <div class="field field-full">
+        <label>Há alguma construção, alteração ou situação do imóvel que não conste dos documentos? <span class="req">*</span></label>
+        <select id="situacao-imovel" onchange="document.getElementById('situacao-wrap').style.display=this.value.startsWith('Sim')?'flex':'none'">
+          <option value="">— escolher —</option>
+          <option value="Não — o imóvel corresponde ao que consta dos documentos">Não — o imóvel corresponde ao que consta dos documentos</option>
+          <option value="Sim">Sim — descrever abaixo</option>
+        </select>
+        <div class="field-hint">Por exemplo: anexos, ampliações, marquises, telheiros, piscinas, divisões alteradas, ocupações ou passagens usadas por vizinhos. Nós não conhecemos o imóvel: o que não for dito aqui não fica no contrato, e o que não está no contrato é como se não existisse.</div>
+      </div>
+      <div class="field field-full" id="situacao-wrap" style="display:none">
+        <label>Descreva a situação e o que as partes combinaram quanto a ela <span class="req">*</span></label>
+        <textarea id="situacao-txt" rows="3" placeholder="Ex: existe no logradouro um anexo com cerca de 20 m², para arrumos, que não consta da caderneta nem da certidão; é vendido no estado em que se encontra"></textarea>
+      </div>
+    </div>
   </div>
 
   <!-- ④ PREÇO -->
@@ -913,6 +928,9 @@ function submeter(){
   const emailC=document.getElementById('email-comprador').value.trim();
   if(!designacao){showToast('Preenche a designação do processo','err');return;}
   if(!nome1){showToast('Preenche pelo menos o nome do vendedor','err');return;}
+  const sitI=document.getElementById('situacao-imovel').value;
+  if(!sitI){showToast('Responde se há alguma construção ou situação do imóvel que não conste dos documentos','err');document.getElementById('situacao-imovel').focus();return;}
+  if(sitI==='Sim'&&!document.getElementById('situacao-txt').value.trim()){showToast('Descreve a situação do imóvel que não consta dos documentos','err');document.getElementById('situacao-txt').focus();return;}
   const d=recolherDados();
   const linhas=[];
   linhas.push('=== DADOS PARA CPCV — LBC SOLICITADORA ===\n');
@@ -996,6 +1014,9 @@ function submeter(){
       }
     }
   }
+  linhas.push('\n--- SITUAÇÃO DO IMÓVEL ---');
+  linhas.push(`Construção ou situação que não consta dos documentos: ${d['situacao-imovel']==='Sim'?'Sim':d['situacao-imovel']}`);
+  if(d['situacao-imovel']==='Sim')linhas.push(`Descrição: ${d['situacao-txt']||''}`);
   linhas.push('\n--- PREÇO ---');
   linhas.push(`Preço total: ${d['preco-total']||''}`);
   const temSinal=d['tem-sinal']||'';
