@@ -1088,10 +1088,19 @@ function submeter(){
   linhas.push(`Email vendedor: ${emailV} | Tel: ${d['tel-vendedor']||''}`);
   linhas.push(`Email comprador: ${emailC} | Tel: ${d['tel-comprador']||''}`);
   linhas.push('\n⚠ LEMBRETE: Anexa a este email o CC de todos os intervenientes, certidão permanente, caderneta predial e certificado energético.');
-  if(d['observacoes'])linhas.push(`\n--- OBSERVAÇÕES ---\n${d['observacoes']}`);
+  /* (25/10/2026) O que o consultor escreveu vai para o INÍCIO do e-mail, destacado, para a LBC
+     o ler antes de tudo: observações, situação do imóvel, herdeiros e notas da cláusula penal. */
+  const dest=[];
+  if(d['observacoes'])dest.push(`OBSERVAÇÕES DO CONSULTOR:\n${d['observacoes']}`);
+  if(d['situacao-imovel']==='Sim')dest.push(`SITUAÇÃO DO IMÓVEL QUE NÃO CONSTA DOS DOCUMENTOS:\n${d['situacao-txt']||'(sem descrição)'}`);
+  for(let i=1;i<=vcnt;i++){const n=d[`vendedores-${i}-nome`];const h=n&&herdDocs(`vendedores-${i}`);
+    if(h)dest.push(`VENDEDOR HERDEIRO: ${n} — herança de ${d[`vendedores-${i}-herd-falecido`]||'…'}${h.ob?', óbito em '+h.ob.split('-').reverse().join('/'):''} (habilitação de herdeiros${h.menos8===false?'':' + participação do Imposto do Selo'})`);}
+  if(d['cp-obs'])dest.push(`NOTA SOBRE A CLÁUSULA PENAL:\n${d['cp-obs']}`);
+  if(dest.length){const barra='════════════════════════════════════════';
+    linhas.splice(1,0,`${barra}\n⚠ ATENÇÃO — INFORMAÇÃO DO CONSULTOR\n${barra}\n${dest.join('\n\n')}\n${barra}\n`);}
   const corpo=linhas.join('\n');
   const ag=d['proc-agencia']||'—';
-  const assuntoStr=`Dados CPCV — ${ag} — ${designacao||nome1}`;
+  const assuntoStr=`${dest.length?'⚠ COM OBSERVAÇÕES · ':''}Dados CPCV — ${ag} — ${designacao||nome1}`;
   const assunto=encodeURIComponent(assuntoStr);
   const body=encodeURIComponent(corpo);
   // mailto: funciona em qualquer cliente de email (Outlook desktop, web, Gmail, Apple Mail, etc.)
