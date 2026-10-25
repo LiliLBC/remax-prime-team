@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Área REMAX — LBC Solicitadora</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F3EE;--surface:#fff;--surface2:#F1EFEA;--border:#E4E0D8;--border-strong:#D8D3CA;--text:#24212B;--muted:#5F5A68;
+  --accent:#5B4C9A;--accent-dark:#3E3270;--accent-light:#EDEAF5;
+  --red:#B3261E;--red-bg:#FBE3E1;--red-t:#8E2A22;--amber:#C98A12;--amber-bg:#FBEFD5;--amber-t:#7A4F0C;--green:#2E7D4F;--green-bg:#E3F2E9;--green-t:#1F5E3A;
+  --serie-lbc:#5B4C9A;--serie-loja:#C9C1E3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;font-size:14px;line-height:1.5}
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--border)}
+.marca{font-family:'Source Serif 4',Georgia,serif;font-size:19px;font-weight:600}
+.sessao{font-size:13px;color:var(--muted)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button{min-height:38px;padding:0 16px;border-radius:999px;border:none;background:var(--accent-light);color:var(--accent-dark);font:500 13.5px 'DM Sans',sans-serif;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);color:#fff;font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:20px 24px 48px;display:flex;flex-direction:column;gap:14px}
+.barra{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.barra input[type=search]{flex:1 1 260px;font:inherit;font-size:14px;padding:10px 13px;border:1px solid var(--border-strong);border-radius:10px;background:#fff}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:999px;border:1px solid var(--border);background:#fff;font:500 13px 'DM Sans',sans-serif;cursor:pointer;color:var(--text)}
+.chip[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip.ok{background:var(--green-bg);color:var(--green-t);border-color:transparent}.chip.conf{background:var(--amber-bg);color:var(--amber-t);border-color:transparent}.chip.grave{background:var(--red-bg);color:var(--red-t);border-color:transparent}
+.cartao{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.cpcv{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.cpcv .info{flex:1 1 280px;min-width:0}
+.titulo{font-weight:700;font-size:15px}
+.meta{font-size:12.5px;color:var(--muted)}
+.relogio{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600}
+.relogio.verde{background:var(--green-bg);color:var(--green-t)}.relogio.ambar{background:var(--amber-bg);color:var(--amber-t)}.relogio.vermelho{background:var(--red-bg);color:var(--red-t)}.relogio.cinza{background:var(--surface2);color:var(--muted)}
+.acoes{display:flex;gap:8px;flex-wrap:wrap}
+.btn{min-height:40px;padding:0 14px;border-radius:9px;border:1px solid var(--border-strong);background:#fff;font:500 13px 'DM Sans',sans-serif;cursor:pointer;color:var(--text);display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:var(--surface2)}.btn:disabled{opacity:.5;cursor:default}
+.btn.p{background:var(--accent);border-color:var(--accent);color:#fff}.btn.p:hover{background:var(--accent-dark)}
+.btn.v{border-color:var(--green);color:var(--green-t)}
+.analise{border-left:5px solid var(--border-strong)}
+.analise.ok{border-left-color:var(--green)}.analise.complemento{border-left-color:var(--amber)}.analise.impeditivo{border-left-color:var(--red)}
+.selo{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;padding:0 8px;border-radius:999px;font-weight:700;font-size:13px}
+.selo.ok{background:var(--green-bg);color:var(--green-t)}.selo.complemento{background:var(--amber-bg);color:var(--amber-t)}.selo.impeditivo{background:var(--red-bg);color:var(--red-t)}
+.lista{margin:6px 0 0;padding-left:20px;font-size:13.5px}
+.nota{padding:11px 14px;border-radius:10px;background:var(--accent-light);font-size:12.5px;color:#4A4654;line-height:1.55}
+.vazio{padding:28px;text-align:center;color:var(--muted)}
+.erro{padding:12px 14px;border-radius:10px;background:var(--red-bg);color:var(--red-t)}
+.grelha{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi .rot{font-size:12.5px;color:var(--muted)}.kpi .num{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+.tempo{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tempo th{font-size:11.5px;font-weight:600;color:var(--muted);text-align:right;padding:0 0 4px 8px}
+.tempo td{padding:2px 0 2px 8px;text-align:right;font-weight:700}.tempo td:first-child{text-align:left;font-weight:400;font-size:12px;color:var(--muted);padding-left:0}
+.tempo tr.med td:not(:first-child){font-size:19px}
+.legenda{display:flex;gap:14px;font-size:12.5px;color:#4A4654}.legenda i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.entrar{max-width:460px;margin:60px auto;text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.entrar h1{font-family:'Source Serif 4',Georgia,serif;font-size:24px;margin:0}
+.sr{position:absolute;left:-9999px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#24212B;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;display:none;max-width:90vw;z-index:9}
+@media(max-width:820px){.grelha{grid-template-columns:repeat(2,minmax(0,1fr))}header{padding:12px 16px}main{padding:16px 16px 40px}}
+@media print{header nav,.barra,.acoes,.so-ecra,#toast{display:none!important}body{background:#fff}.cartao{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="marca">LBC Solicitadora · Área REMAX</div><div class="sessao" id="sessao">piloto · v2026-10-24.1</div></div>
+  <nav id="nav" role="tablist" aria-label="Separadores" hidden>
+    <button role="tab" aria-selected="true" data-sep="cpcv">CPCV</button>
+    <button role="tab" aria-selected="false" data-sep="analises">Análises</button>
+    <button role="tab" aria-selected="false" data-sep="metricas">Métricas</button>
+    <button class="so-ecra" style="background:transparent;color:var(--muted)" id="sair">Sair</button>
+  </nav>
+</header>
+<main id="app"><div class="vazio">A carregar…</div></main>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ═══════════ ÁREA REMAX · página dos coordenadores (24/10/2026) ═══════════
+   Só consulta + CPCV. Tudo passa pelo porteiro da LBC; esta página não tem chaves
+   nem acesso direto ao SharePoint. Entrada com o e-mail da REMAX (convidado da LBC). */
+const CFG={
+  TENANT_ID:'1642f083-ca35-4b92-9b43-21e2c478d5c3',
+  APP_ID:'60f4542e-7a0c-459c-835a-54532fc9f684',   // aplicação «LBC Área REMAX»
+  PORTEIRO:'https://lbc-porteiro-remax-f4g7dbfzcqf2hect.swedencentral-01.azurewebsites.net/api',   // Function App na Suécia (25/10/2026)
+};
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const toast=(t,ms=3500)=>{const el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',ms);};
+const RES={ok:{s:'✓',t:'OK — tudo em conformidade'},complemento:{s:'⚠',t:'Complemento de documentação'},impeditivo:{s:'✕',t:'Impeditivo de escritura'}};
+function dur(ms){if(ms==null||!isFinite(ms))return'—';const m=Math.max(0,Math.round(ms/60000));if(m<60)return`${m} min`;const h=Math.floor(m/60);if(h<24)return`${h} h`;const d=Math.floor(h/24),r=h%24;return r?`${d} d ${r} h`:`${d} d`;}
+const dPT=iso=>iso?new Date(iso).toLocaleDateString('pt-PT'):'—';
+const dhPT=iso=>iso?new Date(iso).toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'}):'—';
+const guardar=(k,v)=>{try{localStorage.setItem(k,v);}catch(_){}};
+const ler=k=>{try{return localStorage.getItem(k);}catch(_){return null;}};
+
+/* ── sessão Microsoft ── */
+let MSAL=null,CONTA=null,EU=null;
+const ESCOPO=()=>[`api://${CFG.APP_ID}/acesso`];
+function carregarMSAL(){return new Promise((res,rej)=>{if(window.msal)return res();const s=document.createElement('script');s.src='https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js';s.onload=res;s.onerror=()=>rej(new Error('Não consegui carregar o início de sessão da Microsoft.'));document.head.appendChild(s);});}
+async function iniciar(){
+  if(!CFG.APP_ID||!CFG.PORTEIRO){$('#app').innerHTML='<div class="entrar"><h1>Área REMAX</h1><p class="meta">Esta área ainda está a ser preparada pela LBC.</p></div>';return;}
+  try{
+    await carregarMSAL();
+    MSAL=new msal.PublicClientApplication({auth:{clientId:CFG.APP_ID,authority:`https://login.microsoftonline.com/${CFG.TENANT_ID}`,redirectUri:location.origin+location.pathname},cache:{cacheLocation:'localStorage'}});
+    const r=await MSAL.handleRedirectPromise();
+    CONTA=(r&&r.account)||MSAL.getAllAccounts()[0]||null;
+    if(!CONTA)return ecraEntrar();
+    EU=await api('eu');
+    $('#sessao').textContent=`Loja de ${EU.loja} · sessão: ${EU.nome}`;
+    $('#nav').hidden=false;
+    mostrar(ler('rx-sep')||'cpcv');
+  }catch(e){$('#app').innerHTML=`<div class="entrar"><h1>Área REMAX</h1><div class="erro">${esc(e.message)}</div><button class="btn" onclick="sair()">Entrar com outra conta</button></div>`;}
+}
+function ecraEntrar(){$('#app').innerHTML=`<div class="entrar"><h1>Área REMAX</h1>
+  <p class="meta">Entre com o seu e-mail da REMAX. Se for a primeira vez, aceite o convite da LBC Solicitadora; pode receber um código por e-mail para confirmar.</p>
+  <button class="btn p" onclick="entrar()">Entrar</button></div>`;}
+window.entrar=()=>MSAL.loginRedirect({scopes:ESCOPO(),prompt:'select_account'});
+window.sair=()=>{if(MSAL)MSAL.logoutRedirect({account:CONTA,postLogoutRedirectUri:location.origin+location.pathname});};
+$('#sair').onclick=()=>sair();
+async function tokenAPI(){
+  try{return(await MSAL.acquireTokenSilent({scopes:ESCOPO(),account:CONTA})).accessToken;}
+  catch(_){await MSAL.acquireTokenRedirect({scopes:ESCOPO(),account:CONTA});throw new Error('A renovar a sessão…');}
+}
+async function pedir(rota,opt={}){
+  const r=await fetch(`${CFG.PORTEIRO}/${rota}`,{...opt,headers:{Authorization:'Bearer '+await tokenAPI(),...(opt.headers||{})}});
+  if(!r.ok){let j={};try{j=await r.json();}catch(_){}const e=new Error(j.erro||`Erro ${r.status}`);e.status=r.status;e.dados=j;throw e;}
+  return r;
+}
+const api=async(rota,opt)=>(await pedir(rota,opt)).json();
+
+/* ── separadores ── */
+let SEP='cpcv';
+document.querySelectorAll('nav [data-sep]').forEach(b=>b.onclick=()=>mostrar(b.dataset.sep));
+function mostrar(s){SEP=s;guardar('rx-sep',s);
+  document.querySelectorAll('nav [data-sep]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.sep===s)));
+  ({cpcv:verCPCV,analises:verAnalises,metricas:verMetricas})[s]();}
+
+/* ── CPCV ── */
+let CPCV=[],fCPCV={q:'',estado:'curso'};
+async function verCPCV(){
+  $('#app').innerHTML='<div class="vazio">A carregar os CPCV…</div>';
+  try{CPCV=await api('cpcv');}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
+  pintarCPCV();
+}
+function relogio(c){
+  if(c.concluido)return{cl:'cinza',t:'✓ Concluído'+(c.ultimo?` · ${dPT(c.ultimo.quando)}`:'')};
+  if(!c.ultimo)return{cl:'cinza',t:'A aguardar a primeira versão da LBC'};
+  const ms=Date.now()-Date.parse(c.ultimo.quando),h=ms/3600000;
+  const quem=c.ultimo.lado==='LBC'?'LBC':`REMAX${c.ultimo.por?' ('+c.ultimo.por+')':''}`;
+  return{cl:h<=24?'verde':h<=72?'ambar':'vermelho',t:`Última alteração: ${quem} · há ${dur(ms)}`};
+}
+function pintarCPCV(){
+  const q=fCPCV.q.toLowerCase();
+  const curso=CPCV.filter(c=>!c.concluido),conc=CPCV.filter(c=>c.concluido);
+  const lista=(fCPCV.estado==='curso'?curso:conc).filter(c=>!q||`${c.imovel} ${c.cidade}`.toLowerCase().includes(q));
+  $('#app').innerHTML=`
+    <div class="barra"><label class="sr" for="pq">Pesquisar CPCV</label>
+      <input type="search" id="pq" placeholder="Pesquisar por rua ou cidade…" value="${esc(fCPCV.q)}">
+      <button class="chip" aria-pressed="${fCPCV.estado==='curso'}" onclick="fCPCV.estado='curso';pintarCPCV()">Em curso (${curso.length})</button>
+      <button class="chip" aria-pressed="${fCPCV.estado==='conc'}" onclick="fCPCV.estado='conc';pintarCPCV()">Concluídos (${conc.length})</button></div>
+    <section aria-label="CPCV" style="display:flex;flex-direction:column;gap:10px">
+    ${lista.map(c=>{const r=relogio(c);return`<article class="cartao cpcv">
+      <div class="info"><div class="titulo">${esc(c.imovel)}${c.cidade?', '+esc(c.cidade):''}</div>
+        <div class="meta">CPCV · ${c.versoes.LBC+c.versoes.REMAX} versão(ões) · LBC ${c.versoes.LBC} · loja ${c.versoes.REMAX}${c.comQuem&&!c.concluido?` · ${c.comQuem.lado==='REMAX'?'aguarda a vossa resposta':'com a LBC'}`:''}</div></div>
+      <div class="relogio ${r.cl}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${esc(r.t)}</div>
+      <div class="acoes">
+        <button class="btn" onclick="descarregar('${c.id}',this)" ${c.ultimo?'':'disabled'}>⬇ Última versão</button>
+        <button class="btn p" onclick="carregar('${c.id}')">⬆ Carregar nova versão</button>
+        ${c.concluido?'':`<button class="btn v" onclick="concluir('${c.id}')">✓ Concluído</button>`}
+      </div></article>`;}).join('')||'<div class="vazio">Nenhum CPCV.</div>'}
+    </section>
+    <div class="nota">Descarregue sempre a última versão antes de alterar e carregue-a de volta quando terminar. O relógio mostra quem mexeu por último e há quanto tempo — verde até 24 h, âmbar até 3 dias, vermelho a partir daí. «Concluído» pára o relógio; uma nova versão reabre-o. Só vê os CPCV da sua loja.</div>
+    <input type="file" id="ficheiro" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>`;
+  const pq=$('#pq');pq.oninput=()=>{fCPCV.q=pq.value;const p=pq.selectionStart;pintarCPCV();const n=$('#pq');n.focus();n.setSelectionRange(p,p);};
+}
+window.descarregar=async(id,btn)=>{btn.disabled=true;
+  try{const r=await pedir(`cpcv/${encodeURIComponent(id)}/ficheiro`);
+    const c=CPCV.find(x=>x.id===id)||{};
+    const nome=decodeURIComponent((r.headers.get('Content-Disposition')||'').split("''")[1]||'')||c.ficheiro||`${id}.docx`;
+    guardar('rx-base-'+id,r.headers.get('X-Eventos')||String(c.eventos??''));
+    const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast('Descarregado. Quando terminar, use «Carregar nova versão».');
+  }catch(e){toast(e.message);}btn.disabled=false;};
+window.carregar=id=>{const f=$('#ficheiro');f.value='';f.onchange=()=>enviar(id,f.files[0]);f.click();};
+async function enviar(id,fich,forcar){
+  if(!fich)return;
+  if(!/\.docx$/i.test(fich.name)){toast('Escolha o ficheiro Word (.docx) do CPCV.');return;}
+  const base=ler('rx-base-'+id)||'';
+  try{toast('A carregar…',20000);
+    await api(`cpcv/${encodeURIComponent(id)}/versao?base=${encodeURIComponent(base)}${forcar?'&forcar=1':''}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:await fich.arrayBuffer()});
+    toast('Nova versão entregue à LBC.');await verCPCV();
+  }catch(e){
+    if(e.status===409&&e.dados&&e.dados.conflito){
+      if(confirm(`${e.message}\n\nOK — carregar a minha mesmo assim (a versão da LBC fica guardada na LBC)\nCancelar — descarregar primeiro a última versão`))return enviar(id,fich,true);
+      return;}
+    toast(e.message);}
+}
+window.concluir=async id=>{if(!confirm('Marcar este CPCV como concluído? O relógio pára; uma nova versão reabre-o.'))return;
+  try{await api(`cpcv/${encodeURIComponent(id)}/concluir`,{method:'POST'});toast('Marcado como concluído.');await verCPCV();}catch(e){toast(e.message);}};
+
+/* ── Análises ── */
+let AN=[],fAN={q:'',r:''};
+async function verAnalises(){
+  $('#app').innerHTML='<div class="vazio">A carregar as análises…</div>';
+  try{AN=await api('analises');}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
+  pintarAnalises();
+}
+function pintarAnalises(){
+  const q=fAN.q.toLowerCase(),n=k=>AN.filter(a=>a.resultado===k).length;
+  const lista=AN.filter(a=>(!fAN.r||a.resultado===fAN.r)&&(!q||`${a.imovel} ${a.cidade}`.toLowerCase().includes(q)));
+  const chipR=(k,cl)=>`<button class="chip ${cl}" aria-pressed="${fAN.r===k}" title="${RES[k].t}" onclick="fAN.r=fAN.r==='${k}'?'':'${k}';pintarAnalises()">${RES[k].s} ${n(k)}</button>`;
+  $('#app').innerHTML=`
+    <div class="barra"><label class="sr" for="pa">Pesquisar análises</label>
+      <input type="search" id="pa" placeholder="Pesquisar por morada ou cidade…" value="${esc(fAN.q)}">
+      ${chipR('ok','ok')}${chipR('complemento','conf')}${chipR('impeditivo','grave')}</div>
+    <section aria-label="Análises" style="display:flex;flex-direction:column;gap:10px">
+    ${lista.map(a=>`<article class="cartao analise ${a.resultado}" style="display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center">
+      <span class="selo ${a.resultado}" title="${RES[a.resultado].t}" aria-label="${RES[a.resultado].t}">${RES[a.resultado].s}</span>
+      <div style="flex:1 1 280px;min-width:0"><div class="titulo">${esc(a.imovel)}${a.cidade?', '+esc(a.cidade):''}</div>
+        <div class="meta">${a.entrada?`Pedida ${dhPT(a.entrada)} · `:''}relatório ${dhPT(a.enviado)}${a.entrada?` · ${dur(Date.parse(a.enviado)-Date.parse(a.entrada))}`:''}
+          ${a.nImpeditivo?` · ✕ ${a.nImpeditivo}`:''}${a.nComplemento?` · ⚠ ${a.nComplemento}`:''}</div></div>
+      <button class="btn" onclick="exportar('${a.id}',this)">⬇ Exportar relatório (PDF)</button>
+    </article>`).join('')||'<div class="vazio">Nenhuma análise.</div>'}
+    </section>
+    <div class="nota">Só aparecem os imóveis da sua loja. Os documentos dos clientes ficam na LBC — aqui está apenas o relatório. Para pedir uma análise, envie os documentos por e-mail para juridico2.ideal@remax.pt.</div>`;
+  const pa=$('#pa');pa.oninput=()=>{fAN.q=pa.value;const p=pa.selectionStart;pintarAnalises();const x=$('#pa');x.focus();x.setSelectionRange(p,p);};
+}
+window.exportar=async(id,btn)=>{btn.disabled=true;
+  try{const a=await api(`analises/${encodeURIComponent(id)}`);const u8=await pdfRelatorio(a);
+    const el=document.createElement('a');el.href=URL.createObjectURL(new Blob([u8],{type:'application/pdf'}));
+    el.download=`Relatorio_${(a.imovel||'imovel').replace(/[\\/:*?"<>|#%]/g,'').replace(/\s+/g,'_')}_${a.enviado.slice(0,10)}.pdf`;el.click();
+  }catch(e){toast(e.message);}btn.disabled=false;};
+
+/* PDF do relatório — o mesmo desenho do PDF enviado por e-mail (pdf-lib, Helvetica) */
+const PDFLIB_URL='https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+async function pdfLib(){if(!window.PDFLib)await new Promise((res,rej)=>{const s=document.createElement('script');s.src=PDFLIB_URL;s.onload=res;s.onerror=()=>rej(new Error('Não consegui carregar o gerador de PDF.'));document.head.appendChild(s);});return window.PDFLib;}
+
+/* ═══ PDF do relatório para a REMAX (partilhado: Analisador e página dos coordenadores) ═══
+   dados = {imovel, cidade, loja, quando (ISO), por, resultado, impeditivo[], complemento[],
+            recomendacoes[], documentos:{certidoes, cadernetas}} */
+function agruparLinhas(linhas){
+  // «Prédio 1572/Vila Viçosa (Conceição) — registo provisório…» → grupo «Prédio 1572 · Vila Viçosa (Conceição)»
+  const g=new Map();
+  for(const l of linhas||[]){const m=String(l).match(/^Prédio\s+([^/—]+)\/([^—]+?)\s+—\s+(.+)$/);
+    const k=m?`Prédio ${m[1].trim()} · ${m[2].trim()}`:'';const t=m?m[3]:String(l);
+    if(!g.has(k))g.set(k,[]);g.get(k).push(t.charAt(0).toUpperCase()+t.slice(1));}
+  const out=[...g.entries()].map(([grupo,itens])=>({grupo,itens}));
+  return out.sort((a,b)=>(a.grupo===''?1:0)-(b.grupo===''?1:0));
+}
+function frasesResumo(d){
+  const nI=(d.impeditivo||[]).length,nC=(d.complemento||[]).length;
+  const pl=(n,s,p)=>n===1?s:p;
+  if(d.resultado==='impeditivo')return`${nI} ${pl(nI,'ponto impede','pontos impedem')} a escritura${nC?` e ${pl(nC,'falta','faltam')} ${nC} ${pl(nC,'elemento','elementos')} de documentação`:''}.`;
+  if(d.resultado==='complemento')return`Sem impedimentos. ${pl(nC,'Falta','Faltam')} ${nC} ${pl(nC,'elemento','elementos')} de documentação para a escritura.`;
+  return'Os documentos analisados estão em conformidade para a escritura.';
+}
+async function pdfRelatorioREMAX(PDFLib,d){
+  const {PDFDocument,StandardFonts,rgb}=PDFLib;
+  const doc=await PDFDocument.create();doc.setTitle(`Análise — ${d.imovel}${d.cidade?', '+d.cidade:''}`);doc.setAuthor('LBC — Solicitadora, SP, RL');
+  const F=await doc.embedFont(StandardFonts.Helvetica),FB=await doc.embedFont(StandardFonts.HelveticaBold);
+  const TROCA={'→':'->','≤':'<=','≥':'>=','✓':'','✕':'x','⚠':'!',' ':' '};
+  const limpa=(s,f)=>[...String(s||'')].map(ch=>{if(ch in TROCA)return TROCA[ch];try{f.widthOfTextAtSize(ch,10);return ch;}catch(_){return'';}}).join('');
+  const W=595.28,H=841.89,M=54,LW=W-2*M;
+  const C={txt:rgb(.14,.13,.17),mut:rgb(.42,.40,.46),linha:rgb(.89,.87,.84),roxo:rgb(.36,.30,.60),roxoBg:rgb(.93,.92,.96),
+    red:rgb(.70,.15,.12),redT:rgb(.56,.16,.13),redBg:rgb(.99,.93,.92),amb:rgb(.79,.54,.07),ambT:rgb(.48,.31,.05),ambBg:rgb(1,.97,.90),
+    grn:rgb(.18,.49,.31),grnT:rgb(.12,.37,.23),grnBg:rgb(.93,.97,.94)};
+  let pg,y;
+  const nova=()=>{pg=doc.addPage([W,H]);pg.drawRectangle({x:0,y:H-6,width:W,height:6,color:C.roxo});y=H-M;};
+  const parte=(t,f,sz,larg)=>{const out=[];for(const par of limpa(t,f).split('\n')){let l='';for(const w of par.split(/\s+/)){const x=l?l+' '+w:w;if(f.widthOfTextAtSize(x,sz)>larg&&l){out.push(l);l=w;}else l=x;}out.push(l);}return out;};
+  const precisa=h=>{if(y-h<M+30)nova();};
+  const simbolo=(tipo,cx,cy,r)=>{const cor=tipo==='impeditivo'?C.red:tipo==='complemento'?C.amb:C.grn;
+    pg.drawCircle({x:cx,y:cy,size:r,color:cor});const w=rgb(1,1,1),k=r*.42;
+    if(tipo==='impeditivo'){pg.drawLine({start:{x:cx-k,y:cy-k},end:{x:cx+k,y:cy+k},thickness:r*.2,color:w});pg.drawLine({start:{x:cx-k,y:cy+k},end:{x:cx+k,y:cy-k},thickness:r*.2,color:w});}
+    else if(tipo==='complemento'){pg.drawLine({start:{x:cx,y:cy+r*.5},end:{x:cx,y:cy-r*.1},thickness:r*.22,color:w});pg.drawCircle({x:cx,y:cy-r*.45,size:r*.13,color:w});}
+    else{pg.drawLine({start:{x:cx-r*.45,y:cy},end:{x:cx-r*.1,y:cy-r*.38},thickness:r*.2,color:w});pg.drawLine({start:{x:cx-r*.1,y:cy-r*.38},end:{x:cx+r*.48,y:cy+r*.4},thickness:r*.2,color:w});}};
+  const txt=(s,x,yy,f,sz,cor)=>pg.drawText(limpa(s,f),{x,y:yy,size:sz,font:f,color:cor});
+  nova();
+  // cabeçalho
+  txt('RELATÓRIO DE ANÁLISE PREDIAL',M,y-8,FB,8,C.roxo);y-=34;
+  for(const l of parte(`${d.imovel}${d.cidade?', '+d.cidade:''}`,FB,22,LW)){txt(l,M,y-22,FB,22,C.txt);y-=27;}
+  const quando=new Date(d.quando).toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'});
+  txt(`REMAX · Loja de ${d.loja}   ·   Análise de ${quando}${d.por?`   ·   ${d.por}`:''}`,M,y-10,F,9.5,C.mut);y-=24;
+  pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.8,color:C.roxoBg});y-=22;
+  // secções
+  const seccao=(tipo,titulo,linhas,cor)=>{
+    if(!linhas||!linhas.length)return;
+    precisa(60);
+    if(tipo)simbolo(tipo,M+6,y-5,6);
+    txt(`${titulo.toUpperCase()}  (${linhas.length})`,tipo?M+18:M,y-9,FB,9.5,cor);y-=16;
+    pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=10;
+    for(const g of agruparLinhas(linhas)){
+      if(g.grupo){precisa(30);txt(g.grupo,M,y-9,FB,9.5,C.mut);y-=17;}
+      for(const it of g.itens){const ls=parte(it,F,10.5,LW-22);precisa(ls.length*14+6);
+        pg.drawRectangle({x:M+4,y:y-8.5,width:4,height:4,color:cor});
+        for(const l of ls){txt(l,M+18,y-10.5,F,10.5,C.txt);y-=14.5;}y-=4;}
+      y-=4;}
+    y-=12;};
+  seccao('impeditivo','O que impede a escritura',d.impeditivo,C.red);
+  seccao('complemento','Documentação a completar',d.complemento,C.amb);
+  if(d.resultado==='ok'){ // nada a apontar: uma secção verde, no mesmo desenho das outras
+    simbolo('ok',M+6,y-5,6);txt('EM CONFORMIDADE',M+18,y-9,FB,9.5,C.grnT);y-=16;
+    pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=10;
+    for(const l of parte(frasesResumo(d),F,10.5,LW-18)){txt(l,M+18,y-10.5,F,10.5,C.txt);y-=14.5;}y-=16;}
+  seccao(null,'Recomendações',d.recomendacoes,C.roxo);
+  if(d.documentos){precisa(30);pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=14;
+    const nc=d.documentos.certidoes,nk=d.documentos.cadernetas;
+    txt(`Documentos analisados: ${nc} ${nc===1?'certidão permanente':'certidões permanentes'} do registo predial e ${nk} ${nk===1?'caderneta predial':'cadernetas prediais'}.`,M,y-9,F,9,C.mut);y-=16;}
+  const pags=doc.getPages();pags.forEach((p,i)=>{
+    p.drawLine({start:{x:M,y:M-6},end:{x:W-M,y:M-6},thickness:.5,color:C.linha});
+    p.drawText(limpa('LBC — SOLICITADORA, SP, RL',FB),{x:M,y:M-19,size:8,font:FB,color:C.roxo});
+    p.drawText(limpa('Relatório informativo, feito sobre os documentos enviados. Não dispensa a verificação final da LBC no ato.',F),{x:M,y:M-31,size:7.5,font:F,color:C.mut});
+    const n=`${i+1}/${pags.length}`;p.drawText(n,{x:W-M-F.widthOfTextAtSize(n,7.5),y:M-19,size:7.5,font:F,color:C.mut});});
+  return doc.save();
+}
+async function pdfRelatorio(a){
+  return pdfRelatorioREMAX(await pdfLib(),{imovel:a.imovel,cidade:a.cidade,loja:a.loja,quando:a.enviado,por:a.analisadoPor||'',resultado:a.resultado,
+    impeditivo:a.impeditivo,complemento:a.complemento,recomendacoes:a.recomendacoes,documentos:a.documentos});
+}
+
+/* ── Métricas ── */
+let ANO=new Date().getFullYear();
+async function verMetricas(){
+  $('#app').innerHTML='<div class="vazio">A calcular…</div>';
+  let m;try{m=await api(`metricas?ano=${ANO}`);}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
+  const anos=[];for(let a=new Date().getFullYear();a>=2026;a--)anos.push(a);
+  const t=(x,k)=>dur(x[k]);
+  const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const max=Math.max(1,...m.porMes.map(p=>p.LBC+p.REMAX));const passo=max<=10?2:max<=50?10:20;const topo=Math.ceil(max/passo)*passo; // topo par → meio inteiro
+  const Wc=1000,Hc=220,x0=40,y0=190,larg=(Wc-x0)/12,bw=Math.min(44,larg*.6),esc_=v=>v/topo*(y0-20);
+  const barras=m.porMes.map((p,i)=>{const cx=x0+larg*i+larg/2,hl=esc_(p.LBC),hr=esc_(p.REMAX);
+    return`<g><title>${meses[i]}: LBC ${p.LBC} · loja ${p.REMAX}</title>${p.LBC?`<rect x="${cx-bw/2}" y="${y0-hl}" width="${bw}" height="${hl}" fill="var(--serie-lbc)" rx="2"/>`:''}${p.REMAX?`<rect x="${cx-bw/2}" y="${y0-hl-hr-(p.LBC?2:0)}" width="${bw}" height="${hr}" fill="var(--serie-loja)" rx="2"/>`:''}
+      <text x="${cx}" y="${y0+16}" text-anchor="middle" font-size="11" fill="#5F5A68">${meses[i]}</text></g>`;}).join('');
+  const grelha=[0,.5,1].map(f=>{const v=Math.round(topo*f),yy=y0-esc_(v);return`<line x1="${x0}" y1="${yy}" x2="${Wc}" y2="${yy}" stroke="#E4E0D8"/><text x="${x0-8}" y="${yy+4}" text-anchor="end" font-size="11" fill="#5F5A68">${v}</text>`;}).join('');
+  $('#app').innerHTML=`
+    <div class="barra" style="justify-content:space-between"><div class="meta" style="font-size:14px">Loja de ${esc(m.loja)} · ${m.ano}</div>
+      <div class="acoes"><label class="sr" for="ano">Ano</label><select id="ano" class="chip">${anos.map(a=>`<option ${a==ANO?'selected':''}>${a}</option>`).join('')}</select>
+      <button class="btn" onclick="window.print()">⬇ Exportar (PDF)</button></div></div>
+    <section class="grelha" aria-label="Indicadores">
+      <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.emCurso} em curso · ${m.cpcv.concluidos} concluídos</div></div>
+      <div class="cartao kpi"><div class="rot">Versões feitas pela LBC</div><div class="num">${m.cpcv.versoesLBC}</div><div class="meta">pela loja: ${m.cpcv.versoesREMAX}</div></div>
+      <div class="cartao kpi"><div class="rot">Análises</div><div class="num">${m.analises.total}</div>
+        <div class="barra" style="gap:6px;margin-top:4px"><span class="chip ok" style="cursor:default" title="OK">✓ ${m.analises.ok}</span><span class="chip conf" style="cursor:default" title="Complemento de documentação">⚠ ${m.analises.complemento}</span><span class="chip grave" style="cursor:default" title="Impeditivo de escritura">✕ ${m.analises.impeditivo}</span></div></div>
+      <div class="cartao kpi"><div class="rot" style="margin-bottom:4px">Tempo de resposta LBC</div>
+        <table class="tempo"><thead><tr><th></th><th>CPCV</th><th>Análises</th></tr></thead><tbody>
+          <tr class="med"><td>Médio</td><td>${t(m.cpcv.tempoLBC,'medio')}</td><td>${t(m.analises.tempoLBC,'medio')}</td></tr>
+          <tr><td>Menor</td><td>${t(m.cpcv.tempoLBC,'menor')}</td><td>${t(m.analises.tempoLBC,'menor')}</td></tr>
+          <tr><td>Maior</td><td>${t(m.cpcv.tempoLBC,'maior')}</td><td>${t(m.analises.tempoLBC,'maior')}</td></tr></tbody></table></div>
+    </section>
+    <section class="cartao" aria-label="Versões de CPCV por mês">
+      <div class="barra" style="justify-content:space-between"><b>Versões de CPCV por mês</b><div class="legenda"><span><i style="background:var(--serie-lbc)"></i>LBC</span><span><i style="background:var(--serie-loja)"></i>Loja</span></div></div>
+      <svg viewBox="0 0 ${Wc} ${Hc}" width="100%" role="img" aria-label="Barras empilhadas: versões de CPCV por mês, LBC e loja">${grelha}${barras}</svg>
+    </section>
+    <div class="nota">Vê apenas os números da sua loja. O tempo da LBC corre enquanto o assunto está do nosso lado e pára quando enviamos para vocês — nas análises, com o envio do relatório; nos CPCV, com uma nova versão. Recomeça quando volta para nós. Cada vez que o assunto está connosco conta como uma resposta: daí o médio, o menor e o maior.</div>`;
+  $('#ano').onchange=e=>{ANO=Number(e.target.value);verMetricas();};
+}
+iniciar();
+</script>
+</body>
+</html>
