@@ -150,7 +150,7 @@ async function verCPCV(){
 function relogio(c){
   const ms=c.desde?Date.now()-Date.parse(c.desde):null;
   const quem=c.ultimo?(c.ultimo.lado==='LBC'?'LBC':'loja')+(c.ultimo.por?' ('+c.ultimo.por+')':''):'';
-  if(c.estado==='concluido')return{cl:'verde',t:`✓ Concluído pela LBC · ${dPT(c.desde)} · última versão: ${quem}`};
+  if(c.estado==='concluido')return{cl:'verde',t:`✓ Concluído pela ${c.concluidoPor==='REMAX'?'loja (versão final)':'LBC'} · ${dPT(c.desde)} · última versão: ${quem}`};
   if(!c.ultimo)return{cl:'cinza',t:'✏ Em edição — a LBC está a preparar a primeira versão'};
   return{cl:'ambar',t:`✏ Em edição na LBC${ms!=null?' · há '+dur(ms):''} · última versão: ${quem} em ${dhPT(c.desde)}`};
 }
@@ -161,7 +161,7 @@ function pintarCPCV(){
   $('#app').innerHTML=`
     <div class="barra"><label class="sr" for="pq">Pesquisar CPCV</label>
       <input type="search" id="pq" placeholder="Pesquisar por rua ou cidade…" value="${esc(fCPCV.q)}">
-      <button class="chip" aria-pressed="${fCPCV.estado==='conc'}" onclick="fCPCV.estado='conc';pintarCPCV()">✓ Concluídos pela LBC (${conc.length})</button>
+      <button class="chip" aria-pressed="${fCPCV.estado==='conc'}" onclick="fCPCV.estado='conc';pintarCPCV()">✓ Concluídos (${conc.length})</button>
       <button class="chip" aria-pressed="${fCPCV.estado==='curso'}" onclick="fCPCV.estado='curso';pintarCPCV()">✏ Em edição (${curso.length})</button></div>
     <section aria-label="CPCV" style="display:flex;flex-direction:column;gap:10px">
     ${lista.map(c=>{const r=relogio(c);return`<article class="cartao cpcv">
@@ -173,7 +173,7 @@ function pintarCPCV(){
         ${EU&&EU.lbc?'':`<button class="btn p" onclick="carregar('${c.id}')" ${c.estado==='concluido'?'':'disabled title="Disponível quando a LBC concluir"'}>⬆ Carregar versão alterada</button>`}
       </div></article>`;}).join('')||'<div class="vazio">Nenhum CPCV.</div>'}
     </section>
-    <div class="nota"><b>✓ Concluído pela LBC</b> — a versão está pronta: descarregue-a; se precisar de alterações, faça-as nesse Word e carregue-o («Carregar versão alterada»). <b>✏ Em edição</b> — a LBC está a trabalhar: não descarregue nem altere; quando a LBC concluir, recebe a nova versão por e-mail. A versão final é sempre validada e concluída pela LBC, mesmo sem alterações. Só vê os CPCV da sua loja.</div>
+    <div class="nota"><b>✓ Concluído</b> — a versão está pronta: descarregue-a; se precisar de alterações, faça-as nesse Word e carregue-o («Carregar versão alterada»), indicando se é a <b>versão final</b> (fica concluído) ou <b>para a LBC rever</b>. <b>✏ Em edição</b> — a LBC está a trabalhar: não descarregue nem altere; quando a LBC concluir, recebe a nova versão por e-mail. Se o contrato da LBC estiver correto, não precisa de fazer nada. Só vê os CPCV da sua loja.</div>
     <input type="file" id="ficheiro" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>`;
   const pq=$('#pq');pq.oninput=()=>{fCPCV.q=pq.value;const p=pq.selectionStart;pintarCPCV();const n=$('#pq');n.focus();n.setSelectionRange(p,p);};
 }
@@ -185,17 +185,27 @@ window.descarregar=async(id,btn)=>{btn.disabled=true;
     const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download=nome;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     toast('Descarregado. Quando terminar, use «Carregar nova versão».');
   }catch(e){toast(e.message);}btn.disabled=false;};
-window.carregar=id=>{const f=$('#ficheiro');f.value='';f.onchange=()=>enviar(id,f.files[0]);f.click();};
-async function enviar(id,fich,forcar){
+/* Ao carregar, a loja diz se é a versão final ou se é para a LBC rever (25/10/2026). */
+function perguntarFinal(){return new Promise(res=>{const d=document.createElement('dialog');
+  d.style.cssText='border:none;border-radius:14px;padding:1.2rem 1.3rem;max-width:420px;font:inherit';
+  d.innerHTML=`<h2 style="margin:0 0 .6rem;font-size:17px">Que versão está a carregar?</h2>
+    <label style="display:block;margin:.4rem 0"><input type="radio" name="tf" value="1" checked> <b>Versão final</b> — não há mais alterações; o CPCV fica concluído.</label>
+    <label style="display:block;margin:.4rem 0 1rem"><input type="radio" name="tf" value="0"> <b>Para a LBC rever</b> — fica em edição até a LBC concluir.</label>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end"><button class="btn" value="x">Cancelar</button><button class="btn p" value="ok">Carregar</button></div>`;
+  document.body.appendChild(d);
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const v=b.value==='ok'?d.querySelector('input[name=tf]:checked').value==='1':null;d.close();d.remove();res(v);});
+  d.addEventListener('cancel',()=>{d.remove();res(null);});d.showModal();});}
+window.carregar=id=>{const f=$('#ficheiro');f.value='';f.onchange=async()=>{const fich=f.files[0];if(!fich)return;const fin=await perguntarFinal();if(fin===null)return;enviar(id,fich,false,fin);};f.click();};
+async function enviar(id,fich,forcar,final){
   if(!fich)return;
   if(!/\.docx$/i.test(fich.name)){toast('Escolha o ficheiro Word (.docx) do CPCV.');return;}
   const base=ler('rx-base-'+id)||'';
   try{toast('A carregar…',20000);
-    await api(`cpcv/${encodeURIComponent(id)}/versao?base=${encodeURIComponent(base)}${forcar?'&forcar=1':''}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:await fich.arrayBuffer()});
-    toast('Nova versão entregue à LBC.');await verCPCV();
+    await api(`cpcv/${encodeURIComponent(id)}/versao?base=${encodeURIComponent(base)}${forcar?'&forcar=1':''}${final?'&final=1':''}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:await fich.arrayBuffer()});
+    toast(final?'Versão final guardada — o CPCV fica concluído.':'Versão entregue à LBC para rever.');await verCPCV();
   }catch(e){
     if(e.status===409&&e.dados&&e.dados.conflito){
-      if(confirm(`${e.message}\n\nOK — carregar a minha mesmo assim (a versão da LBC fica guardada na LBC)\nCancelar — descarregar primeiro a última versão`))return enviar(id,fich,true);
+      if(confirm(`${e.message}\n\nOK — carregar a minha mesmo assim (a versão da LBC fica guardada na LBC)\nCancelar — descarregar primeiro a última versão`))return enviar(id,fich,true,final);
       return;}
     toast(e.message);}
 }
@@ -338,8 +348,8 @@ async function verMetricas(){
       <div class="acoes"><label class="sr" for="ano">Ano</label><select id="ano" class="chip">${anos.map(a=>`<option ${a==ANO?'selected':''}>${a}</option>`).join('')}</select>
       <button class="btn" onclick="window.print()">⬇ Exportar (PDF)</button></div></div>
     <section class="grelha" aria-label="Indicadores">
-      <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.concluidos} concluídos pela LBC · ${m.cpcv.emCurso} em edição</div></div>
-      <div class="cartao kpi"><div class="rot">Aceites sem alterações</div><div class="num">${m.cpcv.semAlteracoes??0}</div><div class="meta">${m.cpcv.concluidos?Math.round(100*(m.cpcv.semAlteracoes||0)/m.cpcv.concluidos)+' % dos concluídos':'—'} · sem nenhuma versão da loja</div></div>
+      <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.concluidosLBC??m.cpcv.concluidos} concluídos pela LBC · ${m.cpcv.concluidosLoja??0} pela loja · ${m.cpcv.emCurso} em edição</div></div>
+      <div class="cartao kpi"><div class="rot">Aceites sem alterações</div><div class="num">${m.cpcv.semAlteracoes??0}</div><div class="meta">${(m.cpcv.concluidosLBC??m.cpcv.concluidos)?Math.round(100*(m.cpcv.semAlteracoes||0)/(m.cpcv.concluidosLBC??m.cpcv.concluidos))+' % dos concluídos pela LBC':'—'} · sem nenhuma versão da loja</div></div>
       <div class="cartao kpi"><div class="rot">Versões feitas pela LBC</div><div class="num">${m.cpcv.versoesLBC}</div><div class="meta">pela loja: ${m.cpcv.versoesREMAX}</div></div>
       <div class="cartao kpi"><div class="rot">Análises</div><div class="num">${m.analises.total}</div>
         <div class="barra" style="gap:6px;margin-top:4px"><span class="chip ok" style="cursor:default" title="OK">✓ ${m.analises.ok}</span><span class="chip conf" style="cursor:default" title="Complemento de documentação">⚠ ${m.analises.complemento}</span><span class="chip grave" style="cursor:default" title="Impeditivo de escritura">✕ ${m.analises.impeditivo}</span></div></div>
