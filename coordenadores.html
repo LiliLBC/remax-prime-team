@@ -149,9 +149,10 @@ async function verCPCV(){
    «Em edição» = a loja devolveu uma versão (ou a LBC ainda prepara a primeira) e a LBC está a trabalhar. */
 function relogio(c){
   const ms=c.desde?Date.now()-Date.parse(c.desde):null;
-  if(c.estado==='concluido')return{cl:'verde',t:`✓ Concluído pela LBC · ${dPT(c.desde)} · pode descarregar`};
+  const quem=c.ultimo?(c.ultimo.lado==='LBC'?'LBC':'loja')+(c.ultimo.por?' ('+c.ultimo.por+')':''):'';
+  if(c.estado==='concluido')return{cl:'verde',t:`✓ Concluído pela LBC · ${dPT(c.desde)} · última versão: ${quem}`};
   if(!c.ultimo)return{cl:'cinza',t:'✏ Em edição — a LBC está a preparar a primeira versão'};
-  return{cl:'ambar',t:`✏ Em edição na LBC${ms!=null?' · há '+dur(ms):''} · aguarde a nova versão`};
+  return{cl:'ambar',t:`✏ Em edição na LBC${ms!=null?' · há '+dur(ms):''} · última versão: ${quem} em ${dhPT(c.desde)}`};
 }
 function pintarCPCV(){
   const q=fCPCV.q.toLowerCase();
@@ -338,6 +339,7 @@ async function verMetricas(){
       <button class="btn" onclick="window.print()">⬇ Exportar (PDF)</button></div></div>
     <section class="grelha" aria-label="Indicadores">
       <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.concluidos} concluídos pela LBC · ${m.cpcv.emCurso} em edição</div></div>
+      <div class="cartao kpi"><div class="rot">Aceites sem alterações</div><div class="num">${m.cpcv.semAlteracoes??0}</div><div class="meta">${m.cpcv.concluidos?Math.round(100*(m.cpcv.semAlteracoes||0)/m.cpcv.concluidos)+' % dos concluídos':'—'} · sem nenhuma versão da loja</div></div>
       <div class="cartao kpi"><div class="rot">Versões feitas pela LBC</div><div class="num">${m.cpcv.versoesLBC}</div><div class="meta">pela loja: ${m.cpcv.versoesREMAX}</div></div>
       <div class="cartao kpi"><div class="rot">Análises</div><div class="num">${m.analises.total}</div>
         <div class="barra" style="gap:6px;margin-top:4px"><span class="chip ok" style="cursor:default" title="OK">✓ ${m.analises.ok}</span><span class="chip conf" style="cursor:default" title="Complemento de documentação">⚠ ${m.analises.complemento}</span><span class="chip grave" style="cursor:default" title="Impeditivo de escritura">✕ ${m.analises.impeditivo}</span></div></div>
