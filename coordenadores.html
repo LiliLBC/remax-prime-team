@@ -139,40 +139,40 @@ function mostrar(s){SEP=s;guardar('rx-sep',s);
   ({cpcv:verCPCV,analises:verAnalises,metricas:verMetricas})[s]();}
 
 /* ── CPCV ── */
-let CPCV=[],fCPCV={q:'',estado:'curso'};
+let CPCV=[],fCPCV={q:'',estado:'conc'};
 async function verCPCV(){
   $('#app').innerHTML='<div class="vazio">A carregar os CPCV…</div>';
   try{CPCV=await api('cpcv');}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
   pintarCPCV();
 }
+/* Dois estados (25/10/2026): «Concluído» = a LBC enviou a versão, a loja pode descarregar;
+   «Em edição» = a loja devolveu uma versão (ou a LBC ainda prepara a primeira) e a LBC está a trabalhar. */
 function relogio(c){
-  if(c.concluido)return{cl:'cinza',t:'✓ Concluído'+(c.ultimo?` · ${dPT(c.ultimo.quando)}`:'')};
-  if(!c.ultimo)return{cl:'cinza',t:'A aguardar a primeira versão da LBC'};
-  const ms=Date.now()-Date.parse(c.ultimo.quando),h=ms/3600000;
-  const quem=c.ultimo.lado==='LBC'?'LBC':`REMAX${c.ultimo.por?' ('+c.ultimo.por+')':''}`;
-  return{cl:h<=24?'verde':h<=72?'ambar':'vermelho',t:`Última alteração: ${quem} · há ${dur(ms)}`};
+  const ms=c.desde?Date.now()-Date.parse(c.desde):null;
+  if(c.estado==='concluido')return{cl:'verde',t:`✓ Concluído pela LBC · ${dPT(c.desde)} · pode descarregar`};
+  if(!c.ultimo)return{cl:'cinza',t:'✏ Em edição — a LBC está a preparar a primeira versão'};
+  return{cl:'ambar',t:`✏ Em edição na LBC${ms!=null?' · há '+dur(ms):''} · aguarde a nova versão`};
 }
 function pintarCPCV(){
   const q=fCPCV.q.toLowerCase();
-  const curso=CPCV.filter(c=>!c.concluido),conc=CPCV.filter(c=>c.concluido);
+  const curso=CPCV.filter(c=>c.estado!=='concluido'),conc=CPCV.filter(c=>c.estado==='concluido');
   const lista=(fCPCV.estado==='curso'?curso:conc).filter(c=>!q||`${c.imovel} ${c.cidade}`.toLowerCase().includes(q));
   $('#app').innerHTML=`
     <div class="barra"><label class="sr" for="pq">Pesquisar CPCV</label>
       <input type="search" id="pq" placeholder="Pesquisar por rua ou cidade…" value="${esc(fCPCV.q)}">
-      <button class="chip" aria-pressed="${fCPCV.estado==='curso'}" onclick="fCPCV.estado='curso';pintarCPCV()">Em curso (${curso.length})</button>
-      <button class="chip" aria-pressed="${fCPCV.estado==='conc'}" onclick="fCPCV.estado='conc';pintarCPCV()">Concluídos (${conc.length})</button></div>
+      <button class="chip" aria-pressed="${fCPCV.estado==='conc'}" onclick="fCPCV.estado='conc';pintarCPCV()">✓ Concluídos pela LBC (${conc.length})</button>
+      <button class="chip" aria-pressed="${fCPCV.estado==='curso'}" onclick="fCPCV.estado='curso';pintarCPCV()">✏ Em edição (${curso.length})</button></div>
     <section aria-label="CPCV" style="display:flex;flex-direction:column;gap:10px">
     ${lista.map(c=>{const r=relogio(c);return`<article class="cartao cpcv">
       <div class="info"><div class="titulo">${esc(c.imovel)}${c.cidade?', '+esc(c.cidade):''}</div>
-        <div class="meta">CPCV · ${c.versoes.LBC+c.versoes.REMAX} versão(ões) · LBC ${c.versoes.LBC} · loja ${c.versoes.REMAX}${c.comQuem&&!c.concluido?` · ${c.comQuem.lado==='REMAX'?'aguarda a vossa resposta':'com a LBC'}`:''}</div></div>
+        <div class="meta">CPCV · ${c.versoes.LBC+c.versoes.REMAX} versão(ões) · LBC ${c.versoes.LBC} · loja ${c.versoes.REMAX}</div></div>
       <div class="relogio ${r.cl}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${esc(r.t)}</div>
       <div class="acoes">
-        <button class="btn" onclick="descarregar('${c.id}',this)" ${c.ultimo?'':'disabled'}>⬇ Última versão</button>
-        ${EU&&EU.lbc?'':`<button class="btn p" onclick="carregar('${c.id}')">⬆ Carregar nova versão</button>
-        ${c.concluido?'':`<button class="btn v" onclick="concluir('${c.id}')">✓ Concluído</button>`}`}
+        <button class="btn" onclick="descarregar('${c.id}',this)" ${c.estado==='concluido'||(EU&&EU.lbc&&c.ultimo)?'':'disabled title="Em edição na LBC — aguarde a nova versão"'}>⬇ Última versão</button>
+        ${EU&&EU.lbc?'':`<button class="btn p" onclick="carregar('${c.id}')" ${c.estado==='concluido'?'':'disabled title="Disponível quando a LBC concluir"'}>⬆ Carregar versão alterada</button>`}
       </div></article>`;}).join('')||'<div class="vazio">Nenhum CPCV.</div>'}
     </section>
-    <div class="nota">Descarregue sempre a última versão antes de alterar e carregue-a de volta quando terminar. O relógio mostra quem mexeu por último e há quanto tempo — verde até 24 h, âmbar até 3 dias, vermelho a partir daí. «Concluído» pára o relógio; uma nova versão reabre-o. Só vê os CPCV da sua loja.</div>
+    <div class="nota"><b>✓ Concluído pela LBC</b> — a versão está pronta: descarregue-a; se precisar de alterações, faça-as nesse Word e carregue-o («Carregar versão alterada»). <b>✏ Em edição</b> — a LBC está a trabalhar: não descarregue nem altere; quando a LBC concluir, recebe a nova versão por e-mail. A versão final é sempre validada e concluída pela LBC, mesmo sem alterações. Só vê os CPCV da sua loja.</div>
     <input type="file" id="ficheiro" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>`;
   const pq=$('#pq');pq.oninput=()=>{fCPCV.q=pq.value;const p=pq.selectionStart;pintarCPCV();const n=$('#pq');n.focus();n.setSelectionRange(p,p);};
 }
@@ -198,8 +198,6 @@ async function enviar(id,fich,forcar){
       return;}
     toast(e.message);}
 }
-window.concluir=async id=>{if(!confirm('Marcar este CPCV como concluído? O relógio pára; uma nova versão reabre-o.'))return;
-  try{await api(`cpcv/${encodeURIComponent(id)}/concluir`,{method:'POST'});toast('Marcado como concluído.');await verCPCV();}catch(e){toast(e.message);}};
 
 /* ── Análises ── */
 let AN=[],fAN={q:'',r:''};
@@ -339,7 +337,7 @@ async function verMetricas(){
       <div class="acoes"><label class="sr" for="ano">Ano</label><select id="ano" class="chip">${anos.map(a=>`<option ${a==ANO?'selected':''}>${a}</option>`).join('')}</select>
       <button class="btn" onclick="window.print()">⬇ Exportar (PDF)</button></div></div>
     <section class="grelha" aria-label="Indicadores">
-      <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.emCurso} em curso · ${m.cpcv.concluidos} concluídos</div></div>
+      <div class="cartao kpi"><div class="rot">CPCV tratados</div><div class="num">${m.cpcv.total}</div><div class="meta">${m.cpcv.concluidos} concluídos pela LBC · ${m.cpcv.emCurso} em edição</div></div>
       <div class="cartao kpi"><div class="rot">Versões feitas pela LBC</div><div class="num">${m.cpcv.versoesLBC}</div><div class="meta">pela loja: ${m.cpcv.versoesREMAX}</div></div>
       <div class="cartao kpi"><div class="rot">Análises</div><div class="num">${m.analises.total}</div>
         <div class="barra" style="gap:6px;margin-top:4px"><span class="chip ok" style="cursor:default" title="OK">✓ ${m.analises.ok}</span><span class="chip conf" style="cursor:default" title="Complemento de documentação">⚠ ${m.analises.complemento}</span><span class="chip grave" style="cursor:default" title="Impeditivo de escritura">✕ ${m.analises.impeditivo}</span></div></div>
