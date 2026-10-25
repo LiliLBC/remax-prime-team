@@ -103,6 +103,9 @@ async function iniciar(){
     const r=await MSAL.handleRedirectPromise();
     CONTA=(r&&r.account)||MSAL.getAllAccounts()[0]||null;
     if(!CONTA)return ecraEntrar();
+    /* Pede ao mesmo tempo quem sou e a lista do separador que vai abrir (25/10/2026): uma espera em vez de duas. */
+    const sep0=ler('rx-sep')||'cpcv',l0=ler('rx-loja');
+    if(sep0==='cpcv'){PRE_CPCV=api('cpcv'+(l0?'?loja='+encodeURIComponent(l0):''));PRE_CPCV.catch(()=>{});}
     EU=await api('eu');
     /* Equipa da LBC (25/10/2026): escolhe a loja e só consulta. */
     if(EU.lbc){const g=ler('rx-loja');if(g&&EU.lojas.includes(g))EU.loja=g;
@@ -139,10 +142,10 @@ function mostrar(s){SEP=s;guardar('rx-sep',s);
   ({cpcv:verCPCV,analises:verAnalises,metricas:verMetricas})[s]();}
 
 /* ── CPCV ── */
-let CPCV=[],fCPCV={q:'',estado:'conc'};
+let CPCV=[],fCPCV={q:'',estado:'conc'},PRE_CPCV=null;
 async function verCPCV(){
   $('#app').innerHTML='<div class="vazio">A carregar os CPCV…</div>';
-  try{CPCV=await api('cpcv');}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
+  try{const pre=PRE_CPCV;PRE_CPCV=null;CPCV=await(pre&&(!EU||!EU.lbc||EU.loja===(ler('rx-loja')||EU.loja))?pre:api('cpcv'));}catch(e){$('#app').innerHTML=`<div class="erro">${esc(e.message)}</div>`;return;}
   pintarCPCV();
 }
 /* Dois estados (25/10/2026): «Concluído» = a LBC enviou a versão, a loja pode descarregar;
@@ -166,11 +169,13 @@ function pintarCPCV(){
     <section aria-label="CPCV" style="display:flex;flex-direction:column;gap:10px">
     ${lista.map(c=>{const r=relogio(c);return`<article class="cartao cpcv">
       <div class="info"><div class="titulo">${esc(c.imovel)}${c.cidade?', '+esc(c.cidade):''}</div>
-        <div class="meta">CPCV · ${c.versoes.LBC+c.versoes.REMAX} versão(ões) · LBC ${c.versoes.LBC} · loja ${c.versoes.REMAX}</div></div>
+        <div class="meta">CPCV · ${c.versoes.LBC+c.versoes.REMAX} versão(ões) · LBC ${c.versoes.LBC} · loja ${c.versoes.REMAX}</div>
+        ${c.notaLBC?`<div style="margin-top:6px;padding:7px 10px;border-left:4px solid #C9821B;background:#FDF3E1;border-radius:6px;font-size:13px;white-space:pre-wrap"><b>📝 Nota da LBC</b> · ${esc(dPT(c.notaLBC.quando))}<br>${esc(c.notaLBC.texto)}</div>`:''}
+        ${c.notaLoja?`<div style="margin-top:6px;padding:7px 10px;border-left:4px solid #5B4C9A;background:#EFEBF8;border-radius:6px;font-size:13px;white-space:pre-wrap"><b>📝 Nota da loja</b>${c.notaLoja.por?' ('+esc(c.notaLoja.por)+')':''} · ${esc(dPT(c.notaLoja.quando))}<br>${esc(c.notaLoja.texto)}</div>`:''}</div>
       <div class="relogio ${r.cl}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${esc(r.t)}</div>
       <div class="acoes">
         <button class="btn" onclick="descarregar('${c.id}',this)" ${c.estado==='concluido'||(EU&&EU.lbc&&c.ultimo)?'':'disabled title="Em edição na LBC — aguarde a nova versão"'}>⬇ Última versão</button>
-        ${EU&&EU.lbc?'':`<button class="btn p" onclick="carregar('${c.id}')" ${c.estado==='concluido'?'':'disabled title="Disponível quando a LBC concluir"'}>⬆ Carregar versão alterada</button>`}
+        ${EU&&EU.lbc?`<button class="btn p" disabled title="Só os coordenadores carregam versões aqui. A LBC conclui e envia no Portal (📑 Loja).">⬆ Carregar versão alterada</button>`:`<button class="btn p" onclick="carregar('${c.id}')" ${c.estado==='concluido'?'':'disabled title="Disponível quando a LBC concluir"'}>⬆ Carregar versão alterada</button>`}
       </div></article>`;}).join('')||'<div class="vazio">Nenhum CPCV.</div>'}
     </section>
     <div class="nota"><b>✓ Concluído</b> — a versão está pronta: descarregue-a; se precisar de alterações, faça-as nesse Word e carregue-o («Carregar versão alterada»), indicando se é a <b>versão final</b> (fica concluído) ou <b>para a LBC rever</b>. <b>✏ Em edição</b> — a LBC está a trabalhar: não descarregue nem altere; quando a LBC concluir, recebe a nova versão por e-mail. Se o contrato da LBC estiver correto, não precisa de fazer nada. Só vê os CPCV da sua loja.</div>
@@ -190,22 +195,23 @@ function perguntarFinal(){return new Promise(res=>{const d=document.createElemen
   d.style.cssText='border:none;border-radius:14px;padding:1.2rem 1.3rem;max-width:420px;font:inherit';
   d.innerHTML=`<h2 style="margin:0 0 .6rem;font-size:17px">Que versão está a carregar?</h2>
     <label style="display:block;margin:.4rem 0"><input type="radio" name="tf" value="1" checked> <b>Versão final</b> — não há mais alterações; o CPCV fica concluído.</label>
-    <label style="display:block;margin:.4rem 0 1rem"><input type="radio" name="tf" value="0"> <b>Para a LBC rever</b> — fica em edição até a LBC concluir.</label>
+    <label style="display:block;margin:.4rem 0 .8rem"><input type="radio" name="tf" value="0"> <b>Para a LBC rever</b> — fica em edição até a LBC concluir.</label>
+    <label style="display:block;margin:0 0 1rem;font-size:13px">Nota para a LBC (opcional)<br><textarea id="tf-nota" rows="2" style="width:100%;font:inherit;padding:6px;border-radius:8px;border:1px solid #ccc" placeholder="Ex: alterámos a data da escritura e o IBAN do sinal"></textarea></label>
     <div style="display:flex;gap:.5rem;justify-content:flex-end"><button class="btn" value="x">Cancelar</button><button class="btn p" value="ok">Carregar</button></div>`;
   document.body.appendChild(d);
-  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const v=b.value==='ok'?d.querySelector('input[name=tf]:checked').value==='1':null;d.close();d.remove();res(v);});
+  d.querySelectorAll('button').forEach(b=>b.onclick=()=>{const v=b.value==='ok'?{final:d.querySelector('input[name=tf]:checked').value==='1',nota:d.querySelector('#tf-nota').value.trim()}:null;d.close();d.remove();res(v);});
   d.addEventListener('cancel',()=>{d.remove();res(null);});d.showModal();});}
-window.carregar=id=>{const f=$('#ficheiro');f.value='';f.onchange=async()=>{const fich=f.files[0];if(!fich)return;const fin=await perguntarFinal();if(fin===null)return;enviar(id,fich,false,fin);};f.click();};
-async function enviar(id,fich,forcar,final){
+window.carregar=id=>{const f=$('#ficheiro');f.value='';f.onchange=async()=>{const fich=f.files[0];if(!fich)return;const r=await perguntarFinal();if(r===null)return;enviar(id,fich,false,r.final,r.nota);};f.click();};
+async function enviar(id,fich,forcar,final,nota){
   if(!fich)return;
   if(!/\.docx$/i.test(fich.name)){toast('Escolha o ficheiro Word (.docx) do CPCV.');return;}
   const base=ler('rx-base-'+id)||'';
   try{toast('A carregar…',20000);
-    await api(`cpcv/${encodeURIComponent(id)}/versao?base=${encodeURIComponent(base)}${forcar?'&forcar=1':''}${final?'&final=1':''}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:await fich.arrayBuffer()});
+    await api(`cpcv/${encodeURIComponent(id)}/versao?base=${encodeURIComponent(base)}${forcar?'&forcar=1':''}${final?'&final=1':''}${nota?'&nota='+encodeURIComponent(nota.slice(0,1000)):''}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:await fich.arrayBuffer()});
     toast(final?'Versão final guardada — o CPCV fica concluído.':'Versão entregue à LBC para rever.');await verCPCV();
   }catch(e){
     if(e.status===409&&e.dados&&e.dados.conflito){
-      if(confirm(`${e.message}\n\nOK — carregar a minha mesmo assim (a versão da LBC fica guardada na LBC)\nCancelar — descarregar primeiro a última versão`))return enviar(id,fich,true,final);
+      if(confirm(`${e.message}\n\nOK — carregar a minha mesmo assim (a versão da LBC fica guardada na LBC)\nCancelar — descarregar primeiro a última versão`))return enviar(id,fich,true,final,nota);
       return;}
     toast(e.message);}
 }
