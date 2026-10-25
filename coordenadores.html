@@ -104,7 +104,11 @@ async function iniciar(){
     CONTA=(r&&r.account)||MSAL.getAllAccounts()[0]||null;
     if(!CONTA)return ecraEntrar();
     EU=await api('eu');
-    $('#sessao').textContent=`Loja de ${EU.loja} · sessão: ${EU.nome}`;
+    /* Equipa da LBC (25/10/2026): escolhe a loja e só consulta. */
+    if(EU.lbc){const g=ler('rx-loja');if(g&&EU.lojas.includes(g))EU.loja=g;
+      $('#sessao').innerHTML=`<label for="rx-loja" class="sr">Loja</label><select id="rx-loja" style="font:inherit;padding:2px 6px;border-radius:6px">${EU.lojas.map(l=>`<option${l===EU.loja?' selected':''}>${esc(l)}</option>`).join('')}</select> · LBC (só consulta) · ${esc(EU.nome)}`;
+      $('#rx-loja').onchange=e=>{EU.loja=e.target.value;guardar('rx-loja',EU.loja);mostrar(SEP);};}
+    else $('#sessao').textContent=`Loja de ${EU.loja} · sessão: ${EU.nome}`;
     $('#nav').hidden=false;
     mostrar(ler('rx-sep')||'cpcv');
   }catch(e){$('#app').innerHTML=`<div class="entrar"><h1>Área REMAX</h1><div class="erro">${esc(e.message)}</div><button class="btn" onclick="sair()">Entrar com outra conta</button></div>`;}
@@ -120,6 +124,7 @@ async function tokenAPI(){
   catch(_){await MSAL.acquireTokenRedirect({scopes:ESCOPO(),account:CONTA});throw new Error('A renovar a sessão…');}
 }
 async function pedir(rota,opt={}){
+  if(EU&&EU.lbc)rota+=(rota.includes('?')?'&':'?')+'loja='+encodeURIComponent(EU.loja);
   const r=await fetch(`${CFG.PORTEIRO}/${rota}`,{...opt,headers:{Authorization:'Bearer '+await tokenAPI(),...(opt.headers||{})}});
   if(!r.ok){let j={};try{j=await r.json();}catch(_){}const e=new Error(j.erro||`Erro ${r.status}`);e.status=r.status;e.dados=j;throw e;}
   return r;
@@ -163,8 +168,8 @@ function pintarCPCV(){
       <div class="relogio ${r.cl}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${esc(r.t)}</div>
       <div class="acoes">
         <button class="btn" onclick="descarregar('${c.id}',this)" ${c.ultimo?'':'disabled'}>⬇ Última versão</button>
-        <button class="btn p" onclick="carregar('${c.id}')">⬆ Carregar nova versão</button>
-        ${c.concluido?'':`<button class="btn v" onclick="concluir('${c.id}')">✓ Concluído</button>`}
+        ${EU&&EU.lbc?'':`<button class="btn p" onclick="carregar('${c.id}')">⬆ Carregar nova versão</button>
+        ${c.concluido?'':`<button class="btn v" onclick="concluir('${c.id}')">✓ Concluído</button>`}`}
       </div></article>`;}).join('')||'<div class="vazio">Nenhum CPCV.</div>'}
     </section>
     <div class="nota">Descarregue sempre a última versão antes de alterar e carregue-a de volta quando terminar. O relógio mostra quem mexeu por último e há quanto tempo — verde até 24 h, âmbar até 3 dias, vermelho a partir daí. «Concluído» pára o relógio; uma nova versão reabre-o. Só vê os CPCV da sua loja.</div>
