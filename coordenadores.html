@@ -86,7 +86,7 @@ const CFG={
 const $=s=>document.querySelector(s);
 const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const toast=(t,ms=3500)=>{const el=$('#toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',ms);};
-const RES={ok:{s:'✓',t:'OK — tudo em conformidade'},complemento:{s:'⚠',t:'Complemento de documentação'},impeditivo:{s:'✕',t:'Impeditivo de escritura'}};
+const RES={ok:{s:'✓',t:'OK — tudo em conformidade'},complemento:{s:'⚠',t:'Recomendação'},impeditivo:{s:'✕',t:'Impeditivo de escritura'}};
 function dur(ms){if(ms==null||!isFinite(ms))return'—';const m=Math.max(0,Math.round(ms/60000));if(m<60)return`${m} min`;const h=Math.floor(m/60);if(h<24)return`${h} h`;const d=Math.floor(h/24),r=h%24;return r?`${d} d ${r} h`:`${d} d`;}
 const dPT=iso=>iso?new Date(iso).toLocaleDateString('pt-PT'):'—';
 const dhPT=iso=>iso?new Date(iso).toLocaleString('pt-PT',{dateStyle:'short',timeStyle:'short'}):'—';
@@ -318,15 +318,15 @@ async function pdfRelatorioREMAX(PDFLib,d){
         for(const l of ls){txt(l,M+18,y-10.5,F,10.5,C.txt);y-=14.5;}y-=4;}
       y-=4;}
     y-=12;};
-  seccao('impeditivo','O que impede a escritura',d.impeditivo,C.red);
-  seccao('complemento','Documentação a completar',d.complemento,C.amb);
+  seccao('impeditivo','Impeditivo de escritura',d.impeditivo,C.red);
+  seccao('complemento','Recomendação',d.complemento,C.amb);
   /* Pontos em conformidade escritos pela LBC (26/10/2026): secção verde com a lista. */
-  if(d.conforme&&d.conforme.length)seccao('ok','Em conformidade',d.conforme,C.grnT);
+  if(d.conforme&&d.conforme.length)seccao('ok','OK',d.conforme,C.grnT);
   else if(d.resultado==='ok'){ // nada a apontar: uma secção verde, no mesmo desenho das outras
-    simbolo('ok',M+6,y-5,6);txt('EM CONFORMIDADE',M+18,y-9,FB,9.5,C.grnT);y-=16;
+    simbolo('ok',M+6,y-5,6);txt('OK',M+18,y-9,FB,9.5,C.grnT);y-=16;
     pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=10;
     for(const l of parte(frasesResumo(d),F,10.5,LW-18)){txt(l,M+18,y-10.5,F,10.5,C.txt);y-=14.5;}y-=16;}
-  seccao(null,'Recomendações',d.recomendacoes,C.roxo);
+  seccao(null,'Outras recomendações',d.recomendacoes,C.roxo);
   if(d.documentos&&(d.documentos.certidoes||d.documentos.cadernetas)){precisa(30);pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=14;
     const nc=d.documentos.certidoes,nk=d.documentos.cadernetas;
     txt(`Documentos analisados: ${nc} ${nc===1?'certidão permanente':'certidões permanentes'} do registo predial e ${nk} ${nk===1?'caderneta predial':'cadernetas prediais'}.`,M,y-9,F,9,C.mut);y-=16;}
