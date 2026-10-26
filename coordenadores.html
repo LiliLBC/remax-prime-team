@@ -64,7 +64,7 @@ main{max-width:1100px;margin:0 auto;padding:20px 24px 48px;display:flex;flex-dir
 </head>
 <body>
 <header>
-  <div class="marca-wrap"><span class="logo peq" role="img" aria-label="LBC Solicitadora"></span><div><div class="marca">LBC Solicitadora · Área REMAX</div><div class="sessao" id="sessao">piloto · v2026-10-25.3</div></div></div>
+  <div class="marca-wrap"><span class="logo peq" role="img" aria-label="LBC Solicitadora"></span><div><div class="marca">LBC Solicitadora · Área REMAX</div><div class="sessao" id="sessao">piloto · v2026-10-26.1</div></div></div>
   <nav id="nav" role="tablist" aria-label="Separadores" hidden>
     <button role="tab" aria-selected="true" data-sep="cpcv">CPCV</button>
     <button role="tab" aria-selected="false" data-sep="analises">Análises</button>
@@ -226,8 +226,11 @@ async function verAnalises(){
   pintarAnalises();
 }
 function pintarAnalises(){
-  const q=fAN.q.toLowerCase(),n=k=>AN.filter(a=>a.resultado===k).length;
-  const lista=AN.filter(a=>(!fAN.r||a.resultado===fAN.r)&&(!q||`${a.imovel} ${a.cidade}`.toLowerCase().includes(q)));
+  /* Pesquisa abrangente (26/10/2026): sem acentos nem maiúsculas, cada palavra em qualquer
+     parte da morada («boa vontade gafanhoeira», «miguel torga 9», «nº 13» = «n 13»). */
+  const sa=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/n\.?\s*[ºo°]/g,'n ').replace(/[^a-z0-9]+/g,' ').trim();
+  const pal=sa(fAN.q).split(' ').filter(Boolean),n=k=>AN.filter(a=>a.resultado===k).length;
+  const lista=AN.filter(a=>(!fAN.r||a.resultado===fAN.r)&&(!pal.length||(t=>pal.every(w=>t.includes(w)))(sa(`${a.imovel} ${a.cidade}`))));
   const chipR=(k,cl)=>`<button class="chip ${cl}" aria-pressed="${fAN.r===k}" title="${RES[k].t}" onclick="fAN.r=fAN.r==='${k}'?'':'${k}';pintarAnalises()">${RES[k].s} ${n(k)}</button>`;
   $('#app').innerHTML=`
     <div class="barra"><label class="sr" for="pa">Pesquisar análises</label>
@@ -238,7 +241,7 @@ function pintarAnalises(){
       <span class="selo ${a.resultado}" title="${RES[a.resultado].t}" aria-label="${RES[a.resultado].t}">${RES[a.resultado].s}</span>
       <div style="flex:1 1 280px;min-width:0"><div class="titulo">${esc(a.imovel)}${a.cidade?', '+esc(a.cidade):''}</div>
         <div class="meta">${a.entrada?`Pedida ${dhPT(a.entrada)} · `:''}relatório ${dhPT(a.enviado)}${a.entrada?` · ${dur(Date.parse(a.enviado)-Date.parse(a.entrada))}`:''}
-          ${a.nImpeditivo?` · ✕ ${a.nImpeditivo}`:''}${a.nComplemento?` · ⚠ ${a.nComplemento}`:''}</div></div>
+          ${a.nImpeditivo?` · ✕ ${a.nImpeditivo}`:''}${a.nComplemento?` · ⚠ ${a.nComplemento}`:''}${a.nConforme?` · ✓ ${a.nConforme}`:''}</div></div>
       <button class="btn" onclick="exportar('${a.id}',this)">⬇ Exportar relatório (PDF)</button>
     </article>`).join('')||'<div class="vazio">Nenhuma análise.</div>'}
     </section>
@@ -248,7 +251,7 @@ function pintarAnalises(){
 window.exportar=async(id,btn)=>{btn.disabled=true;
   try{const a=await api(`analises/${encodeURIComponent(id)}`);const u8=await pdfRelatorio(a);
     const el=document.createElement('a');el.href=URL.createObjectURL(new Blob([u8],{type:'application/pdf'}));
-    el.download=`Relatorio_${(a.imovel||'imovel').replace(/[\\/:*?"<>|#%]/g,'').replace(/\s+/g,'_')}_${a.enviado.slice(0,10)}.pdf`;el.click();
+    el.download=`${`${a.imovel||'Imóvel'}${a.cidade?', '+a.cidade:''}`.replace(/[\\/:*?"<>|#%]/g,'').replace(/\s+/g,' ').trim()} – Análise ${a.enviado.slice(0,10)}.pdf`;el.click();
   }catch(e){toast(e.message);}btn.disabled=false;};
 
 /* PDF do relatório — o mesmo desenho do PDF enviado por e-mail (pdf-lib, Helvetica) */
@@ -317,12 +320,14 @@ async function pdfRelatorioREMAX(PDFLib,d){
     y-=12;};
   seccao('impeditivo','O que impede a escritura',d.impeditivo,C.red);
   seccao('complemento','Documentação a completar',d.complemento,C.amb);
-  if(d.resultado==='ok'){ // nada a apontar: uma secção verde, no mesmo desenho das outras
+  /* Pontos em conformidade escritos pela LBC (26/10/2026): secção verde com a lista. */
+  if(d.conforme&&d.conforme.length)seccao('ok','Em conformidade',d.conforme,C.grnT);
+  else if(d.resultado==='ok'){ // nada a apontar: uma secção verde, no mesmo desenho das outras
     simbolo('ok',M+6,y-5,6);txt('EM CONFORMIDADE',M+18,y-9,FB,9.5,C.grnT);y-=16;
     pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=10;
     for(const l of parte(frasesResumo(d),F,10.5,LW-18)){txt(l,M+18,y-10.5,F,10.5,C.txt);y-=14.5;}y-=16;}
   seccao(null,'Recomendações',d.recomendacoes,C.roxo);
-  if(d.documentos){precisa(30);pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=14;
+  if(d.documentos&&(d.documentos.certidoes||d.documentos.cadernetas)){precisa(30);pg.drawLine({start:{x:M,y},end:{x:W-M,y},thickness:.6,color:C.linha});y-=14;
     const nc=d.documentos.certidoes,nk=d.documentos.cadernetas;
     txt(`Documentos analisados: ${nc} ${nc===1?'certidão permanente':'certidões permanentes'} do registo predial e ${nk} ${nk===1?'caderneta predial':'cadernetas prediais'}.`,M,y-9,F,9,C.mut);y-=16;}
   const pags=doc.getPages();pags.forEach((p,i)=>{
@@ -334,7 +339,7 @@ async function pdfRelatorioREMAX(PDFLib,d){
 }
 async function pdfRelatorio(a){
   return pdfRelatorioREMAX(await pdfLib(),{imovel:a.imovel,cidade:a.cidade,loja:a.loja,quando:a.enviado,por:a.analisadoPor||'',resultado:a.resultado,
-    impeditivo:a.impeditivo,complemento:a.complemento,recomendacoes:a.recomendacoes,documentos:a.documentos});
+    impeditivo:a.impeditivo,complemento:a.complemento,conforme:a.conforme||[],recomendacoes:a.recomendacoes,documentos:a.documentos});
 }
 
 /* ── Métricas ── */
